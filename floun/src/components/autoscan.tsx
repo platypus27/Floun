@@ -53,20 +53,4 @@ const AutoScanFeature: React.FC = () => {
   );
 };
 
-const scanPage = () => {
-  // This function runs in the context of the web page
-  const results = {
-    certificates: 'Sample certificate analysis results',
-    algorithms: 'Sample cryptographic algorithm evaluation results',
-    tokens: 'Sample session token analysis results',
-    headers: 'Sample header security check results',
-    jsCrypto: 'Sample JavaScript cryptography analysis results',
-    webSockets: 'Sample WebSocket and API security results',
-    dynamicCrypto: 'Sample dynamic cryptographic behavior monitoring results',
-    aiVulnerability: 'Sample AI-enhanced vulnerability analysis results',
-    contentSecurity: 'Sample content security analysis results',
-  };
-  return JSON.stringify(results, null, 2);
-};
-
 export default AutoScanFeature;
