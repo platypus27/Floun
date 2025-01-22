@@ -1,11 +1,14 @@
+// idk if we want both a detailed report or one that just shows the overall state of the website??
+// if just a detailed report can scrap this page
+
+
 import React from 'react';
 
 const SessionTokenAnalysis: React.FC = () => {
-  // Implement the logic for session token analysis
   return (
     <div>
       <h2>Session Token and Cookie Analysis</h2>
-      {/* Display results here */}
+      {/* ur pp tiny */}
     </div>
   );
 };

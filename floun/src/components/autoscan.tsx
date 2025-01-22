@@ -28,13 +28,11 @@ const AutoScanFeature: React.FC = () => {
   
     const results = {
       certificates: certificate,
-      algorithms: getAlgorithms(),
       tokens: getTokens(),
       headers: getHeaders(),
       jsCrypto: getJavaScriptCrypto(),
       webSockets: getWebSockets(),
       dynamicCrypto: getDynamicCrypto(),
-      aiVulnerability: getAIVulnerability(),
       contentSecurity: getContentSecurity(),
     };
     return JSON.stringify(results, null, 2);
@@ -53,16 +51,12 @@ const AutoScanFeature: React.FC = () => {
       return `Error`;
     }
   };
-
-  const getAlgorithms = () => {
-    return 'Cryptographic algorithm evaluation results';
-  };
   
   const getTokens = () => {
     const tokens = [];
-    const regex = /([a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)/g; // catch jwt tokens
+    const regex = /([a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)/g; // Regex to match JWTs
   
-    // scan document for tokens
+    // Scan the entire document for tokens
     const elements = document.getElementsByTagName('*');
     for (let i = 0; i < elements.length; i++) {
       const element = elements[i];
@@ -73,7 +67,7 @@ const AutoScanFeature: React.FC = () => {
       }
     }
   
-    // scan cookies for tokens
+    // Scan cookies for tokens
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
       const cookie = cookies[i].trim();
@@ -83,7 +77,7 @@ const AutoScanFeature: React.FC = () => {
       }
     }
   
-    // scan localStorage for tokens
+    // Scan localStorage for tokens
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       const value = localStorage.getItem(key) || '';
@@ -93,7 +87,7 @@ const AutoScanFeature: React.FC = () => {
       }
     }
   
-    // scan sessionStorage for tokens
+    // Scan sessionStorage for tokens
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
       const value = sessionStorage.getItem(key) || '';
@@ -107,15 +101,47 @@ const AutoScanFeature: React.FC = () => {
   };
   
   const getHeaders = () => {
-    // Implement header security check logic here
-    return 'Header security check results';
+    const headers: { [key: string]: string } = {};
+  
+    // Retrieve meta tags as headers
+    const metaTags = document.getElementsByTagName('meta');
+    for (let i = 0; i < metaTags.length; i++) {
+      const metaTag = metaTags[i];
+      const name = metaTag.getAttribute('name') || metaTag.getAttribute('http-equiv');
+      const content = metaTag.getAttribute('content');
+      if (name && content) {
+        headers[name] = content;
+      }
+    }
+  
+    // Retrieve other headers from the document
+    headers['Content-Type'] = document.contentType;
+    headers['Content-Language'] = document.documentElement.lang;
+  
+    return headers;
   };
   
   const getJavaScriptCrypto = () => {
-    // Implement JavaScript cryptography analysis logic here
-    return 'JavaScript cryptography analysis results';
+    const scripts = [];
+    const scriptElements = document.getElementsByTagName('script');
+  
+    for (let i = 0; i < scriptElements.length; i++) {
+      const scriptElement = scriptElements[i];
+      if (scriptElement.src) {
+        // If the script has a src attribute, fetch the script content
+        scripts.push(`External script: ${scriptElement.src}`);
+      } else {
+        // If the script is inline, get its content
+        scripts.push(scriptElement.textContent || '');
+      }
+    }
+  
+    return scripts.length > 0 ? scripts : 'No JavaScript found';
   };
   
+
+  // kiv features see if got time
+
   const getWebSockets = () => {
     // Implement WebSocket and API security analysis logic here
     return 'WebSocket and API security results';
@@ -124,11 +150,6 @@ const AutoScanFeature: React.FC = () => {
   const getDynamicCrypto = () => {
     // Implement dynamic cryptographic behavior monitoring logic here
     return 'Dynamic cryptographic behavior monitoring results';
-  };
-  
-  const getAIVulnerability = () => {
-    // Implement AI-enhanced vulnerability analysis logic here
-    return 'AI-enhanced vulnerability analysis results';
   };
   
   const getContentSecurity = () => {

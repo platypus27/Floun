@@ -1,3 +1,8 @@
+// header information is sent from autoscan getHeaders(), just have to analyse the headers and retrieve
+// this is very easy
+// the cryptographic algorithm is straight up told to you from the header/signature
+
+
 import React from 'react';
 
 const HeaderSecurityCheck: React.FC = () => {

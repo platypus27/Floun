@@ -1,3 +1,6 @@
+// erm ill do this part myself i guess
+
+
 import React from 'react';
 
 const JavaScriptCryptographyAnalysis: React.FC = () => {
