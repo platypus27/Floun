@@ -1,5 +1,6 @@
-// idk if we want both a detailed report or one that just shows the overall state of the website??
-// if just a detailed report can scrap this page
+// session token analysis, autoscan getTokens() will return all session tokens
+// including cookies, local storage, and session storage
+// try get the logic for session token analysis
 
 
 import React from 'react';
