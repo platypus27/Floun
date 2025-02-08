@@ -23,9 +23,9 @@ const AutoScanFeature: React.FC = () => {
   };
 
   const scanPage = async () => {
-    const hostname = 'example.com'; // Replace with the actual hostname
+    const hostname = window.location.hostname; // Use the current website's hostname
     const certificate = await getCertificates(hostname);
-  
+
     const results = {
       certificates: certificate,
       tokens: getTokens(),
@@ -37,7 +37,7 @@ const AutoScanFeature: React.FC = () => {
     };
     return JSON.stringify(results, null, 2);
   };
-  
+
   const getCertificates = async (hostname: string) => {
     try {
       const response = await fetch(`https://crt.sh/?q=${hostname}&output=json`);
@@ -45,17 +45,16 @@ const AutoScanFeature: React.FC = () => {
         throw new Error('Network response was not ok');
       }
       const certificates = await response.json();
-      return JSON.stringify(certificates, null, 2);
+      return certificates;
     } catch (error) {
-      // return `Error: ${error.message}`;
-      return `Error`;
+      return `Error fetching certificates: ${error.message}`;
     }
   };
-  
+
   const getTokens = () => {
     const tokens = [];
     const regex = /([a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)/g; // Regex to match JWTs
-  
+
     // Scan the entire document for tokens
     const elements = document.getElementsByTagName('*');
     for (let i = 0; i < elements.length; i++) {
@@ -66,7 +65,7 @@ const AutoScanFeature: React.FC = () => {
         tokens.push(...matches);
       }
     }
-  
+
     // Scan cookies for tokens
     const cookies = document.cookie.split(';');
     for (let i = 0; i < cookies.length; i++) {
@@ -76,7 +75,7 @@ const AutoScanFeature: React.FC = () => {
         tokens.push(...matches);
       }
     }
-  
+
     // Scan localStorage for tokens
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -86,7 +85,7 @@ const AutoScanFeature: React.FC = () => {
         tokens.push(...matches);
       }
     }
-  
+
     // Scan sessionStorage for tokens
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
@@ -96,13 +95,13 @@ const AutoScanFeature: React.FC = () => {
         tokens.push(...matches);
       }
     }
-  
+
     return tokens.length > 0 ? tokens : 'No tokens found';
   };
-  
+
   const getHeaders = () => {
     const headers: { [key: string]: string } = {};
-  
+
     // Retrieve meta tags as headers
     const metaTags = document.getElementsByTagName('meta');
     for (let i = 0; i < metaTags.length; i++) {
@@ -113,18 +112,18 @@ const AutoScanFeature: React.FC = () => {
         headers[name] = content;
       }
     }
-  
+
     // Retrieve other headers from the document
-    headers['Content-Type'] = document.contentType;
-    headers['Content-Language'] = document.documentElement.lang;
-  
+    headers['Content-Type'] = document.contentType || 'Not available';
+    headers['Content-Language'] = document.documentElement.lang || 'Not available';
+
     return headers;
   };
-  
+
   const getJavaScriptCrypto = () => {
     const scripts = [];
     const scriptElements = document.getElementsByTagName('script');
-  
+
     for (let i = 0; i < scriptElements.length; i++) {
       const scriptElement = scriptElements[i];
       if (scriptElement.src) {
@@ -135,26 +134,47 @@ const AutoScanFeature: React.FC = () => {
         scripts.push(scriptElement.textContent || '');
       }
     }
-  
+
     return scripts.length > 0 ? scripts : 'No JavaScript found';
   };
-  
-
-  // kiv features see if got time
 
   const getWebSockets = () => {
-    // Implement WebSocket and API security analysis logic here
-    return 'WebSocket and API security results';
+    const webSockets = [];
+    const scripts = document.getElementsByTagName('script');
+
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
+      if (script.textContent && script.textContent.includes('WebSocket')) {
+        webSockets.push(script.textContent);
+      }
+    }
+
+    return webSockets.length > 0 ? webSockets : 'No WebSocket usage found';
   };
-  
+
   const getDynamicCrypto = () => {
-    // Implement dynamic cryptographic behavior monitoring logic here
-    return 'Dynamic cryptographic behavior monitoring results';
+    const dynamicCrypto = [];
+    const scripts = document.getElementsByTagName('script');
+
+    for (let i = 0; i < scripts.length; i++) {
+      const script = scripts[i];
+      if (script.textContent && script.textContent.includes('crypto')) {
+        dynamicCrypto.push(script.textContent);
+      }
+    }
+
+    return dynamicCrypto.length > 0 ? dynamicCrypto : 'No dynamic cryptographic behavior found';
   };
-  
+
   const getContentSecurity = () => {
-    // Implement content security analysis logic here
-    return 'Content security analysis results';
+    const metaTags = document.getElementsByTagName('meta');
+    for (let i = 0; i < metaTags.length; i++) {
+      const metaTag = metaTags[i];
+      if (metaTag.getAttribute('http-equiv') === 'Content-Security-Policy') {
+        return metaTag.getAttribute('content') || 'No Content Security Policy found';
+      }
+    }
+    return 'No Content Security Policy found';
   };
 
   return (
