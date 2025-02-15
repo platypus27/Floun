@@ -9,23 +9,3 @@
   padding: 20px;
   color: white;
 }
-
-input {
-  margin: 10px 0;
-  padding: 5px;
-  width: 100%;
-}
-
-button {
-  padding: 10px;
-  background-color: #61dafb;
-  border: none;
-  cursor: pointer;
-}
-
-pre {
-  text-align: left;
-  background-color: #f0f0f0;
-  padding: 10px;
-  overflow-x: auto;
-}

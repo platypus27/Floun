@@ -8,8 +8,13 @@ body {
   sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin: 8px;
+  margin: 0px;
   width: 20rem;
+  display: flex;
+}
+
+img {
+  max-width:7rem;
 }
 
 code {
@@ -17,32 +22,21 @@ code {
     monospace;
 }
 
-button {
-  padding: 8px 12px;
-  cursor: pointer;
-}
-
-h1 {
-  margin-bottom: 1rem;
-}
 div {
   display: flex;
-  margin-bottom: 1rem;
 }
-input {
-  padding: 0.5rem;
-  margin-right: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
+
 button {
-  padding: 0.5rem 1rem;
-  background-color: #007bff;
+  margin: 1rem;
+  padding: 0.2rem 1rem;
+  background-color: #016972;
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
 }
+
 button:hover {
-  background-color: #0056b3;
+  background-color: white;
+  color: #016972;
 }
