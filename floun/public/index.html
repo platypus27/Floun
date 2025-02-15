@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <meta
+      name="description"
+      content="Floun - Quantum Resistant Protocol Sentinel"
+    />
+    <title>Floun - Scan</title>
+  </head>
+  <body>
+    <h1>Floun</h1>
+    <div>
+      <button id="scanBtn">Scan</button>
+    </div>
+    <div id="results">Results will appear here...</div>
+    <script>
+      document.getElementById('scanBtn').addEventListener('click', async () => {
+        const hostname = document.getElementById('hostname').value.trim();
+        if (!hostname) {
+          alert('Please enter a valid hostname.');
+          return;
+        }
+        // Placeholder scan functionality
+        document.getElementById('results').innerText = `Scanning ${hostname}...`;
+
+        // Here you can call your scan function. For example:
+        // const scanResult = await scanPage(hostname);
+        // document.getElementById('results').innerText = scanResult;
+
+        // For now, we'll simulate a scan delay:
+        setTimeout(() => {
+          document.getElementById('results').innerText = `Scan complete for ${hostname}. (Results placeholder)`;
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>

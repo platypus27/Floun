@@ -54,5 +54,4 @@ coverage/
 *.iml
 
 # Ignore public folder contents except manifest.json
-public/*
 !public/manifest.json
