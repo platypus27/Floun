@@ -9,3 +9,14 @@
   padding: 20px;
   color: white;
 }
+
+@font-face {
+  font-family: 'Fibra';
+  src: url("font/fibra.otf") format("opentype");
+  font-weight: bold;
+  font-style: normal;
+}
+
+html {
+  font-family: 'Fibra', sans-serif !important;
+}
