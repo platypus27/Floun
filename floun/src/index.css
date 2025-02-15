@@ -6,6 +6,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
   margin: 0px;
   width: 18rem;
+}
+
+.header {
   display: flex;
   justify-content: space-between;
 }
@@ -38,4 +41,17 @@ button {
 button:hover {
   background-color: white;
   color: #016972;
+}
+
+#results {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem;
+  padding: 1rem;
+  border-width: 0.2rem;
+  border-radius: 0.7rem;
+  border: #016972;
+  border-style: solid;
 }
