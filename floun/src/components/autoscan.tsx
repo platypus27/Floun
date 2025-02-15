@@ -47,7 +47,8 @@ const AutoScanFeature: React.FC = () => {
       const certificates = await response.json();
       return certificates;
     } catch (error) {
-      return `Error fetching certificates: ${error.message}`;
+      // return `Error fetching certificates: ${error.message}`;
+      return "error tentententen"
     }
   };
 
@@ -79,20 +80,24 @@ const AutoScanFeature: React.FC = () => {
     // Scan localStorage for tokens
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      const value = localStorage.getItem(key) || '';
-      const matches = value.match(regex);
-      if (matches) {
-        tokens.push(...matches);
+      if (key) {
+        const value = localStorage.getItem(key) || '';
+        const matches = value.match(regex);
+        if (matches) {
+          tokens.push(...matches);
+        }
       }
     }
 
     // Scan sessionStorage for tokens
     for (let i = 0; i < sessionStorage.length; i++) {
       const key = sessionStorage.key(i);
-      const value = sessionStorage.getItem(key) || '';
-      const matches = value.match(regex);
-      if (matches) {
-        tokens.push(...matches);
+      if (key) {
+        const value = sessionStorage.getItem(key) || '';
+        const matches = value.match(regex);
+        if (matches) {
+          tokens.push(...matches);
+        }
       }
     }
 
