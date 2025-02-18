@@ -1,15 +1,3 @@
-.App {
-  text-align: center;
-  padding: 20px;
-  width: 300px;
-}
-
-.App-header {
-  background-color: #282c34;
-  padding: 20px;
-  color: white;
-}
-
 @font-face {
   font-family: 'Fibra';
   src: url("font/fibra.otf") format("opentype");
@@ -19,4 +7,60 @@
 
 html {
   font-family: 'Fibra', sans-serif !important;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+  sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  margin: 0px;
+  width: 18rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+}
+
+
+img {
+  max-width:7rem;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+button {
+  margin: 1rem;
+  padding: 0.2rem 1rem;
+  background-color: #016972;
+  color: white;
+  cursor: pointer;
+  border-width: 0.2rem;
+  border-radius: 0.7rem;
+  border: #016972;
+  border-style: solid;
+}
+
+button:hover {
+  background-color: white;
+  color: #016972;
+}
+
+#results {
+  color: #016972;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem;
+  padding: 1rem;
+  border-width: 0.2rem;
+  border-radius: 0.7rem;
+  border: #016972;
+  border-style: solid;
 }

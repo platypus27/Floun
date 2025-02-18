@@ -1,36 +1,35 @@
 import React, { useState } from 'react';
-import './App.css';
+import './App.css'; // Additional styles
 
-function App() {
-  const [hostname, setHostname] = useState('');
-  const [results, setResults] = useState('');
+const App: React.FC = () => {
+  const [result, setResult] = useState<string>('cat'); // Sample initial value
 
-  const handleScan = async () => {
-    const scanResults = await scanPage(hostname);
-    setResults(scanResults);
+  // Event handler for the scan button
+  const handleScan = () => {
+    // Trigger your scan logic here; updating the result for demo purposes
+    setResult('Scan triggered! (results will appear here)');
+  };
+
+  // Event handler for the download button
+  const handleDownload = () => {
+    // Add download logic here
+    console.log('Download button clicked');
   };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Browser Extension</h1>
-        <input
-          type="text"
-          placeholder="Enter hostname"
-          value={hostname}
-          onChange={(e) => setHostname(e.target.value)}
-        />
-        <button onClick={handleScan}>Scan</button>
-        <pre>{results}</pre>
-      </header>
+    <div className="app">
+      <div className="header">
+        <img src="icons/floun.png" alt="Floun Logo" />
+        <div>
+          <button id="scanBtn" onClick={handleScan}>Scan</button>
+        </div>
+      </div>
+      <div id="results">
+        <div id="resultsText">{result}</div>
+        <button id="downloadBtn" onClick={handleDownload}>Download</button>
+      </div>
     </div>
   );
-}
-
-const scanPage = async (hostname: string) => {
-  // Placeholder for the scanPage function
-  // Replace with actual implementation
-  return `Scanning ${hostname}...`;
 };
 
 export default App;
