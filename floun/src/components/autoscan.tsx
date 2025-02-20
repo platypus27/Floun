@@ -101,20 +101,69 @@ const getHeaders = (): { [key: string]: string } => {
   return headers;
 };
 
-const getJavaScript = (): any => {
+const getJavaScript = async (): Promise<any> => {
   const scripts: any[] = [];
   const scriptElements = document.getElementsByTagName('script');
 
+  // Process existing <script> elements
   for (let i = 0; i < scriptElements.length; i++) {
     const scriptElement = scriptElements[i];
     if (scriptElement.src) {
-      // For external scripts, return a descriptor
-      scripts.push(`External script: ${scriptElement.src}`);
+      // For external scripts, fetch the content (if allowed by CORS)
+      try {
+        const response = await fetch(scriptElement.src);
+        const content = await response.text();
+        scripts.push({
+          type: 'external',
+          src: scriptElement.src,
+          content: content,
+        });
+      } catch (error) {
+        // If fetching fails, log the URL only
+        scripts.push({
+          type: 'external',
+          src: scriptElement.src,
+          content: 'Unable to fetch content due to CORS restrictions',
+        });
+      }
     } else {
       // For inline scripts, add the content
-      scripts.push(scriptElement.textContent || '');
+      scripts.push({
+        type: 'inline',
+        content: scriptElement.textContent || '',
+      });
     }
   }
+
+  // Capture dynamically injected scripts (optional)
+  const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+      mutation.addedNodes.forEach((node) => {
+        if (node.nodeName === 'SCRIPT') {
+          const scriptElement = node as HTMLScriptElement;
+          if (scriptElement.src) {
+            scripts.push({
+              type: 'dynamic-external',
+              src: scriptElement.src,
+              content: 'Dynamically injected external script',
+            });
+          } else {
+            scripts.push({
+              type: 'dynamic-inline',
+              content: scriptElement.textContent || '',
+            });
+          }
+        }
+      });
+    });
+  });
+
+  // Start observing the document for changes
+  observer.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+
   return scripts.length > 0 ? scripts : 'No JavaScript found';
 };
 
