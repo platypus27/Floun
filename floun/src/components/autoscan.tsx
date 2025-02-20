@@ -2,7 +2,7 @@
  * Internal scanning functions used by runAllScans.
  */
 
-import { analyzeCryptoInJavaScript } from './javascriptanalysis';
+import { analyzeCryptoInJavascript } from './javascriptanalysis';
 
 const getCertificates = async (hostname: string): Promise<any> => {
   try {
@@ -142,7 +142,7 @@ export const runAllScans = async (hostname: string): Promise<any> => {
     getJavaScript(),
   ]);
 
-  const cryptoAnalysis = await analyzeCryptoInJavaScript(jsScripts[0].content);
+  const cryptoAnalysis = analyzeCryptoInJavascript(jsScripts);
   return {
     certificates,
     tokens,
