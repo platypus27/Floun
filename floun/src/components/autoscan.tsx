@@ -2,6 +2,8 @@
  * Internal scanning functions used by runAllScans.
  */
 
+import { analyzeCryptoInJavaScript } from './javascriptanalysis';
+
 const getCertificates = async (hostname: string): Promise<any> => {
   try {
     const response = await fetch(`https://crt.sh/?q=${hostname}&output=json`);
@@ -125,7 +127,6 @@ const getJavaScript = async (): Promise<any> => {
     subtree: true,
   });
 
-  console.log(scripts);
   return scripts.length > 0 ? scripts : 'No JavaScript found';
 };
 
@@ -141,13 +142,12 @@ export const runAllScans = async (hostname: string): Promise<any> => {
     getJavaScript(),
   ]);
 
-  // const cryptoAnalysis = await analyzeCryptoInJavaScript(jsScripts);
-
+  const cryptoAnalysis = await analyzeCryptoInJavaScript(jsScripts[0].content);
   return {
     certificates,
     tokens,
     headers,
     jsScripts,
-    // cryptoAnalysis,
+    cryptoAnalysis,
   };
 };
