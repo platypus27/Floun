@@ -8,7 +8,6 @@ const App: React.FC = () => {
 
   // Event handler for the scan button
   const handleScan = async () => {
-    console.log("1")
     const hostname = window.location.hostname || 'example.com';
     const scanResult = await scanPage(hostname);
 

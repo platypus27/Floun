@@ -2,14 +2,13 @@
  * scanPage() performs your extended scan and returns a string with the results.
  */
 export const scanPage = async (hostname: string): Promise<string> => {
-  console.log("2")
   const certificate = await getCertificates(hostname);
 
   const results = {
     certificates: certificate,
     tokens: getTokens(),
     headers: getHeaders(),
-    jsCrypto: getJavaScript(),
+    jsCrypto: await getJavaScript(),
     // webSockets: getWebSockets(),
     // dynamicCrypto: getDynamicCrypto(),
     // contentSecurity: getContentSecurity(),
@@ -17,7 +16,7 @@ export const scanPage = async (hostname: string): Promise<string> => {
   return JSON.stringify(results, null, 2);
 };
 
-const getCertificates = async (hostname: string): Promise<any> => {
+export const getCertificates = async (hostname: string): Promise<any> => {
   try {
     const response = await fetch(`https://crt.sh/?q=${hostname}&output=json`);
     if (!response.ok) {
@@ -30,7 +29,7 @@ const getCertificates = async (hostname: string): Promise<any> => {
   }
 };
 
-const getTokens = (): any => {
+export const getTokens = (): any => {
   const tokens: any[] = [];
   const regex = /([a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)/g; // Regex to match JWTs
 
@@ -81,7 +80,7 @@ const getTokens = (): any => {
   return tokens.length > 0 ? tokens : 'No tokens found';
 };
 
-const getHeaders = (): { [key: string]: string } => {
+export const getHeaders = (): { [key: string]: string } => {
   const headers: { [key: string]: string } = {};
 
   // Retrieve meta tags as headers
@@ -101,53 +100,29 @@ const getHeaders = (): { [key: string]: string } => {
   return headers;
 };
 
-const getJavaScript = async (): Promise<any> => {
+export const getJavaScript = async (): Promise<any> => {
   const scripts: any[] = [];
   const scriptElements = document.getElementsByTagName('script');
 
   // Process existing <script> elements
   for (let i = 0; i < scriptElements.length; i++) {
     const scriptElement = scriptElements[i];
-    if (scriptElement.src) {
-      // For external scripts, fetch the content (if allowed by CORS)
-      try {
-        const response = await fetch(scriptElement.src);
-        const content = await response.text();
-        scripts.push({
-          type: 'external',
-          src: scriptElement.src,
-          content: content,
-        });
-      } catch (error) {
-        // If fetching fails, log the URL only
-        scripts.push({
-          type: 'external',
-          src: scriptElement.src,
-          content: 'Unable to fetch content due to CORS restrictions',
-        });
-      }
-    } else {
-      // For inline scripts, add the content
+    if (scriptElement.textContent) {
       scripts.push({
         type: 'inline',
-        content: scriptElement.textContent || '',
+        content: scriptElement.textContent,
       });
     }
   }
 
-  // Capture dynamically injected scripts (optional)
+  // Observe the document for dynamically added script elements
   const observer = new MutationObserver((mutations) => {
     mutations.forEach((mutation) => {
       mutation.addedNodes.forEach((node) => {
-        if (node.nodeName === 'SCRIPT') {
-          const scriptElement = node as HTMLScriptElement;
-          if (scriptElement.src) {
-            scripts.push({
-              type: 'dynamic-external',
-              src: scriptElement.src,
-              content: 'Dynamically injected external script',
-            });
-          } else {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+          const element = node as HTMLElement;
+          if (element.tagName.toLowerCase() === 'script') {
+            const scriptElement = element as HTMLScriptElement;
             scripts.push({
               type: 'dynamic-inline',
               content: scriptElement.textContent || '',
@@ -158,7 +133,6 @@ const getJavaScript = async (): Promise<any> => {
     });
   });
 
-  // Start observing the document for changes
   observer.observe(document.documentElement, {
     childList: true,
     subtree: true,
@@ -167,41 +141,13 @@ const getJavaScript = async (): Promise<any> => {
   return scripts.length > 0 ? scripts : 'No JavaScript found';
 };
 
-//all commented below this is kiv
-
-// const getWebSockets = (): any => {
-//   const webSockets: any[] = [];
-//   const scripts = document.getElementsByTagName('script');
-
-//   for (let i = 0; i < scripts.length; i++) {
-//     const script = scripts[i];
-//     if (script.textContent && script.textContent.includes('WebSocket')) {
-//       webSockets.push(script.textContent);
-//     }
-//   }
-//   return webSockets.length > 0 ? webSockets : 'No WebSocket usage found';
+// all kiv for future implementation
+// export const getWebSockets = (): any => {
+//   // implementation...
 // };
-
-// const getDynamicCrypto = (): any => {
-//   const dynamicCrypto: any[] = [];
-//   const scripts = document.getElementsByTagName('script');
-
-//   for (let i = 0; i < scripts.length; i++) {
-//     const script = scripts[i];
-//     if (script.textContent && script.textContent.includes('crypto')) {
-//       dynamicCrypto.push(script.textContent);
-//     }
-//   }
-//   return dynamicCrypto.length > 0 ? dynamicCrypto : 'No dynamic cryptographic behavior found';
+// export const getDynamicCrypto = (): any => {
+//   // implementation...
 // };
-
-// const getContentSecurity = (): string => {
-//   const metaTags = document.getElementsByTagName('meta');
-//   for (let i = 0; i < metaTags.length; i++) {
-//     const metaTag = metaTags[i];
-//     if (metaTag.getAttribute('http-equiv') === 'Content-Security-Policy') {
-//       return metaTag.getAttribute('content') || 'No Content Security Policy found';
-//     }
-//   }
-//   return 'No Content Security Policy found';
+// export const getContentSecurity = (): any => {
+//   // implementation...
 // };

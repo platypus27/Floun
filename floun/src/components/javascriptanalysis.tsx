@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { scanPage } from './autoscan';
 
-const JavaScriptCryptographyAnalysis: React.FC = () => {
+const JavaScriptAnalysis: React.FC = () => {
   const [autoScanResults, setAutoScanResults] = useState<string>('');
   const jsResults: string[] = [];
   const scriptElements = document.getElementsByTagName('script');
@@ -79,4 +79,4 @@ const JavaScriptCryptographyAnalysis: React.FC = () => {
   );
 };
 
-export default JavaScriptCryptographyAnalysis;
+export default JavaScriptAnalysis;
