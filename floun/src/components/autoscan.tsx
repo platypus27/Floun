@@ -1,20 +1,6 @@
 /**
  * scanPage() performs your extended scan and returns a string with the results.
  */
-export const scanPage = async (hostname: string): Promise<string> => {
-  const certificate = await getCertificates(hostname);
-
-  const results = {
-    certificates: certificate,
-    tokens: getTokens(),
-    headers: getHeaders(),
-    jsCrypto: await getJavaScript(),
-    // webSockets: getWebSockets(),
-    // dynamicCrypto: getDynamicCrypto(),
-    // contentSecurity: getContentSecurity(),
-  };
-  return JSON.stringify(results, null, 2);
-};
 
 export const getCertificates = async (hostname: string): Promise<any> => {
   try {
