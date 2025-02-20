@@ -10,9 +10,9 @@ export const scanPage = async (hostname: string): Promise<string> => {
     tokens: getTokens(),
     headers: getHeaders(),
     jsCrypto: getJavaScriptCrypto(),
-    webSockets: getWebSockets(),
-    dynamicCrypto: getDynamicCrypto(),
-    contentSecurity: getContentSecurity(),
+    // webSockets: getWebSockets(),
+    // dynamicCrypto: getDynamicCrypto(),
+    // contentSecurity: getContentSecurity(),
   };
   return JSON.stringify(results, null, 2);
 };
@@ -118,39 +118,41 @@ const getJavaScriptCrypto = (): any => {
   return scripts.length > 0 ? scripts : 'No JavaScript found';
 };
 
-const getWebSockets = (): any => {
-  const webSockets: any[] = [];
-  const scripts = document.getElementsByTagName('script');
+//all commented below this is kiv
 
-  for (let i = 0; i < scripts.length; i++) {
-    const script = scripts[i];
-    if (script.textContent && script.textContent.includes('WebSocket')) {
-      webSockets.push(script.textContent);
-    }
-  }
-  return webSockets.length > 0 ? webSockets : 'No WebSocket usage found';
-};
+// const getWebSockets = (): any => {
+//   const webSockets: any[] = [];
+//   const scripts = document.getElementsByTagName('script');
 
-const getDynamicCrypto = (): any => {
-  const dynamicCrypto: any[] = [];
-  const scripts = document.getElementsByTagName('script');
+//   for (let i = 0; i < scripts.length; i++) {
+//     const script = scripts[i];
+//     if (script.textContent && script.textContent.includes('WebSocket')) {
+//       webSockets.push(script.textContent);
+//     }
+//   }
+//   return webSockets.length > 0 ? webSockets : 'No WebSocket usage found';
+// };
 
-  for (let i = 0; i < scripts.length; i++) {
-    const script = scripts[i];
-    if (script.textContent && script.textContent.includes('crypto')) {
-      dynamicCrypto.push(script.textContent);
-    }
-  }
-  return dynamicCrypto.length > 0 ? dynamicCrypto : 'No dynamic cryptographic behavior found';
-};
+// const getDynamicCrypto = (): any => {
+//   const dynamicCrypto: any[] = [];
+//   const scripts = document.getElementsByTagName('script');
 
-const getContentSecurity = (): string => {
-  const metaTags = document.getElementsByTagName('meta');
-  for (let i = 0; i < metaTags.length; i++) {
-    const metaTag = metaTags[i];
-    if (metaTag.getAttribute('http-equiv') === 'Content-Security-Policy') {
-      return metaTag.getAttribute('content') || 'No Content Security Policy found';
-    }
-  }
-  return 'No Content Security Policy found';
-};
+//   for (let i = 0; i < scripts.length; i++) {
+//     const script = scripts[i];
+//     if (script.textContent && script.textContent.includes('crypto')) {
+//       dynamicCrypto.push(script.textContent);
+//     }
+//   }
+//   return dynamicCrypto.length > 0 ? dynamicCrypto : 'No dynamic cryptographic behavior found';
+// };
+
+// const getContentSecurity = (): string => {
+//   const metaTags = document.getElementsByTagName('meta');
+//   for (let i = 0; i < metaTags.length; i++) {
+//     const metaTag = metaTags[i];
+//     if (metaTag.getAttribute('http-equiv') === 'Content-Security-Policy') {
+//       return metaTag.getAttribute('content') || 'No Content Security Policy found';
+//     }
+//   }
+//   return 'No Content Security Policy found';
+// };
