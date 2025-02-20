@@ -1,22 +1,14 @@
 import React, { useState } from 'react';
 import './App.css';
-import { scanPage } from './components/autoscan';
+import { runAllScans } from './components/autoscan';
 
 const App: React.FC = () => {
-  // Start with an empty result so the results div is hidden initially
-  const [result, setResult] = useState<string>(''); 
+  const [result, setResult] = useState<string>('');
 
-  // Event handler for the scan button
   const handleScan = async () => {
     const hostname = window.location.hostname || 'example.com';
-    const scanResult = await scanPage(hostname);
-
-    setResult('Scan triggered! (results will appear here)');
-  };
-
-  // Event handler for the download button
-  const handleDownload = () => {
-    console.log('Download button clicked');
+    const scanResults = runAllScans(hostname);
+    setResult(JSON.stringify(scanResults, null, 2));
   };
 
   return (
@@ -24,14 +16,14 @@ const App: React.FC = () => {
       <div className="header">
         <img src="icons/floun.png" alt="Floun Logo" />
         <div id="rightHeader">
-          <button id="scanBtn" onClick={handleScan}>Scan</button>
+          <button id="scanBtn" onClick={handleScan}>
+            Scan
+          </button>
         </div>
       </div>
-      {/* Render the results div only if result is not empty */}
       {result && (
         <div id="results">
-          <div id="resultsText">{result}</div>
-          <button id="downloadBtn" onClick={handleDownload}>Download</button>
+          <pre>{result}</pre>
         </div>
       )}
     </div>
