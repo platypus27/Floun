@@ -135,19 +135,30 @@ const getJavaScript = async (): Promise<any> => {
  * Also calls analyzeCryptoInJavaScript from javascriptanalysis.tsx.
  */
 export const runAllScans = async (hostname: string): Promise<any> => {
-  const [certificates, tokens, headers, jsScripts] = await Promise.all([
-    getCertificates(hostname),
-    Promise.resolve(getTokens()),
-    Promise.resolve(getHeaders()),
-    getJavaScript(),
-  ]);
+  try {
+    const [certificates, tokens, headers, jsScripts] = await Promise.all([
+      getCertificates(hostname),
+      Promise.resolve(getTokens()),
+      Promise.resolve(getHeaders()),
+      getJavaScript(),
+    ]);
 
-  const cryptoAnalysis = analyzeCryptoInJavascript(jsScripts);
-  return {
-    certificates,
-    tokens,
-    headers,
-    jsScripts,
-    cryptoAnalysis,
-  };
+    if (jsScripts === 'No JavaScript found') {
+      throw new Error('No JavaScript detected on the page.');
+    }
+
+    const cryptoAnalysis = analyzeCryptoInJavascript(jsScripts);
+    return {
+      certificates,
+      tokens,
+      headers,
+      jsScripts,
+      cryptoAnalysis,
+    };
+  } catch (error) {
+    console.error('Error running all scans:', error);
+    return {
+      error: (error as Error).message,
+    };
+  }
 };
