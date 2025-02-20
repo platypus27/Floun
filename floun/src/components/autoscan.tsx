@@ -9,7 +9,7 @@ export const scanPage = async (hostname: string): Promise<string> => {
     certificates: certificate,
     tokens: getTokens(),
     headers: getHeaders(),
-    jsCrypto: getJavaScriptCrypto(),
+    jsCrypto: getJavaScript(),
     // webSockets: getWebSockets(),
     // dynamicCrypto: getDynamicCrypto(),
     // contentSecurity: getContentSecurity(),
@@ -101,7 +101,7 @@ const getHeaders = (): { [key: string]: string } => {
   return headers;
 };
 
-const getJavaScriptCrypto = (): any => {
+const getJavaScript = (): any => {
   const scripts: any[] = [];
   const scriptElements = document.getElementsByTagName('script');
 
