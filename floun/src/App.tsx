@@ -1,14 +1,29 @@
 import React, { useState } from 'react';
 import './App.css';
-import { runAllScans } from './components/autoscan';
 
 const App: React.FC = () => {
   const [result, setResult] = useState<string>('');
 
   const handleScan = async () => {
-    const hostname = window.location.hostname || 'example.com';
-    const scanResults = runAllScans(hostname);
-    setResult(JSON.stringify(scanResults, null, 2));
+    // Send a message to the content script to start the scan
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0) {
+        const tabId = tabs[0].id;
+        if (tabId !== undefined) {
+          chrome.tabs.sendMessage(tabId, { action: 'runScans' }, (response) => {
+            if (response && response.status === 'success') {
+              setResult(JSON.stringify(response.data, null, 2));
+            } else {
+              setResult(`Error: ${response ? response.message : 'Unknown error'}`);
+            }
+          });
+        } else {
+          setResult('No active tab found.');
+        }
+      } else {
+        setResult('No active tab found.');
+      }
+    });
   };
 
   return (

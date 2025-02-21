@@ -1,3 +1,5 @@
+// src/components/autoscan.tsx
+
 /**
  * Internal scanning functions used by runAllScans.
  */
@@ -13,6 +15,7 @@ const getCertificates = async (hostname: string): Promise<any> => {
     const certificates = await response.json();
     return certificates;
   } catch (error: any) {
+    console.error('Error fetching certificates:', error);
     return `Error fetching certificates: ${error.message}`;
   }
 };
@@ -64,17 +67,43 @@ const getHeaders = (): { [key: string]: string } => {
   return headers;
 };
 
-const getJavaScript = async (): Promise<any> => {
+const getJavaScript = async (pageOrigin: string) => {
   const scripts: any[] = [];
   const scriptElements = document.getElementsByTagName('script');
+
+  console.log('The correct Page origin:', pageOrigin); // Ensure that the correct page origin is used for the javascript
+  console.log('Number of script elements found:', scriptElements.length);
 
   // Process existing <script> elements
   for (let i = 0; i < scriptElements.length; i++) {
     const scriptElement = scriptElements[i];
+    const scriptSource = scriptElement.src || scriptElement.baseURI || '';
+
+    console.log('Processing script:', scriptSource);
+
+    // Exclude scripts from extensions and other unsupported protocols
+    if (
+      scriptSource.includes('chrome-extension://') ||
+      scriptSource.includes('moz-extension://') ||
+      scriptSource.includes('file://')
+    ) {
+      console.log('Skipping script due to unsupported protocol:', scriptSource);
+      continue; // Skip this script entirely
+    }
+
+    // Only process scripts that belong to the same origin
+    if (!scriptSource.startsWith(pageOrigin)) {
+      console.log('Skipping script due to different origin:', scriptSource);
+      continue; // Skip scripts that don't match the page origin
+    }
+
     if (scriptElement.src) {
       // For external scripts, fetch the content (if allowed by CORS)
       try {
         const response = await fetch(scriptElement.src);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch script: ${scriptElement.src}, status: ${response.status}`);
+        }
         const content = await response.text();
         scripts.push({
           type: 'external',
@@ -82,6 +111,7 @@ const getJavaScript = async (): Promise<any> => {
           content: content,
         });
       } catch (error) {
+        console.error(`Error fetching external script: ${scriptElement.src}`, error);
         // If fetching fails, log the URL only
         scripts.push({
           type: 'external',
@@ -104,6 +134,26 @@ const getJavaScript = async (): Promise<any> => {
       mutation.addedNodes.forEach((node) => {
         if (node.nodeName === 'SCRIPT') {
           const scriptElement = node as HTMLScriptElement;
+          const scriptSource = scriptElement.src || scriptElement.baseURI || '';
+
+          console.log('Processing dynamically injected script:', scriptSource);
+
+          // Exclude scripts from extensions and other unsupported protocols
+          if (
+            scriptSource.includes('chrome-extension://') ||
+            scriptSource.includes('moz-extension://') ||
+            scriptSource.includes('file://')
+          ) {
+            console.log('Skipping dynamically injected script due to unsupported protocol:', scriptSource);
+            return; // Skip this script entirely
+          }
+
+          // Only process scripts that belong to the same origin
+          if (!scriptSource.startsWith(pageOrigin)) {
+            console.log('Skipping script due to different origin:', scriptSource);
+            return; // Skip scripts that don't match the page origin
+          }
+
           if (scriptElement.src) {
             scripts.push({
               type: 'dynamic-external',
@@ -127,20 +177,21 @@ const getJavaScript = async (): Promise<any> => {
     subtree: true,
   });
 
+  console.log('Scripts found:', scripts);
   return scripts.length > 0 ? scripts : 'No JavaScript found';
 };
 
 /**
  * Aggregates all scans including certificate, token, header, and JavaScript scans.
- * Also calls analyzeCryptoInJavaScript from javascriptanalysis.tsx.
  */
-export const runAllScans = async (hostname: string): Promise<any> => {
+export const runAllScans = async (pageOrigin: string): Promise<any> => {
   try {
+    const hostname = window.location.hostname;
     const [certificates, tokens, headers, jsScripts] = await Promise.all([
       getCertificates(hostname),
       Promise.resolve(getTokens()),
       Promise.resolve(getHeaders()),
-      getJavaScript(),
+      getJavaScript(pageOrigin),
     ]);
 
     if (jsScripts === 'No JavaScript found') {
@@ -153,7 +204,7 @@ export const runAllScans = async (hostname: string): Promise<any> => {
       tokens,
       headers,
       jsScripts,
-      cryptoAnalysis,
+      // cryptoAnalysis,
     };
   } catch (error) {
     console.error('Error running all scans:', error);

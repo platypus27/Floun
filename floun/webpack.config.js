@@ -2,31 +2,34 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: './src/index.tsx', // Entry point for your React app
+  entry: './src/index.tsx',
   output: {
-    filename: 'popup.js', // Output file name
-    path: path.resolve(__dirname, 'build') // Output directory
+    filename: 'injectedScript.js',
+    path: path.join(__dirname, 'build') // Use path.join
   },
   resolve: {
-    extensions: ['.tsx', '.ts', '.js'] // Resolve these file extensions
+    extensions: ['.tsx', '.ts', '.js']
   },
   module: {
     rules: [
       {
-        test: /\.tsx?$/, // Handle .ts and .tsx files
-        use: 'ts-loader', // Use ts-loader for TypeScript
+        test: /\.tsx?$/,
+        use: 'ts-loader',
         exclude: /node_modules/
       },
       {
-        test: /\.css$/, // Handle CSS files
+        test: /\.css$/,
         use: ['style-loader', 'css-loader']
       }
     ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html', // Path to your HTML template
-      filename: 'index.html' // Output HTML file name
+      template: './public/index.html',
+      filename: 'index.html'
     })
-  ]
+  ],
+  target: 'web',
+  devtool: 'inline-source-map', // Add this line for source maps
+  mode: 'development', // Add this line
 };
