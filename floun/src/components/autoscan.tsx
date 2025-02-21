@@ -3,6 +3,7 @@
  */
 
 import { analyzeCryptoInJavascript } from './javascriptanalysis';
+import { analyzeTokens } from './sessiontokenanalysis';
 
 const getCertificates = async (hostname: string): Promise<any> => {
   try {
@@ -17,38 +18,82 @@ const getCertificates = async (hostname: string): Promise<any> => {
   }
 };
 
-const getTokens = (): any => {
-  const tokens: any[] = [];
-  const regex = /([a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)/g;
+const getTokens = (): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    const tokens: string[] = [];
+    const tokenRegex = /^[a-zA-Z0-9!@#$%^&*()_\-+=`~[\]{}|;':",./<>?]{16,512}$/;  // Your token regex
 
-  // Scan document text
-  const elements = document.getElementsByTagName('*');
-  for (let i = 0; i < elements.length; i++) {
-    const text = elements[i].textContent || '';
-    const matches = text.match(regex);
-    if (matches) tokens.push(...matches);
-  }
+    // 1. Scan Cookies
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (!tabs || tabs.length === 0) {
+        reject("No active tab found.");
+        return;
+      }
 
-  // Scan cookies, localStorage, and sessionStorage
-  document.cookie.split(';').forEach(cookie => {
-    const matches = cookie.trim().match(regex);
-    if (matches) tokens.push(...matches);
+      const tab = tabs[0];
+      if (!tab.url) {
+        reject("Tab URL is not available.");
+        return;
+      }
+
+      const url = new URL(tab.url);
+      const domain = url.hostname;
+
+      chrome.cookies.getAll({ domain: domain }, (cookies) => {
+        if (cookies) {
+          cookies.forEach((cookie) => {
+            if (tokenRegex.test(cookie.value)) {
+              tokens.push(cookie.value);
+            }
+          });
+        }
+        // 2. Scan localStorage and sessionStorage (after cookies)
+        try {
+          const localStorageTokens = scanStorage(localStorage, tokenRegex);
+          const sessionStorageTokens = scanStorage(sessionStorage, tokenRegex);
+
+          tokens.push(...localStorageTokens, ...sessionStorageTokens);
+
+          if (tokens.length > 0) {
+            resolve(tokens);
+          } else {
+            resolve(["No tokens found"]);
+          }
+        } catch (error) {
+          reject(`Error scanning storage: ${error}`);
+        }
+      });
+    });
   });
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    const value = key ? localStorage.getItem(key) || '' : '';
-    const matches = value.match(regex);
-    if (matches) tokens.push(...matches);
-  }
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
-    const value = key ? sessionStorage.getItem(key) || '' : '';
-    const matches = value.match(regex);
-    if (matches) tokens.push(...matches);
-  }
-
-  return tokens.length > 0 ? tokens : 'No tokens found';
 };
+
+// Helper function to scan storage (localStorage or sessionStorage)
+function scanStorage(storage: Storage, tokenRegex: RegExp): string[] {
+  const tokens: string[] = [];
+  // console.log("Scanning storage:", storage);
+  for (let i = 0; i < storage.length; i++) {
+    const key = storage.key(i);
+    if (key) {
+      const value = storage.getItem(key);
+      if (value && tokenRegex.test(value)) { // Apply regex test
+        tokens.push(value);
+      }
+      if (key && tokenRegex.test(key)) {
+        tokens.push(key);
+      }
+    }
+  }
+  return tokens;
+}
+
+getTokens()
+  .then((tokens) => {
+    // console.log("Tokens found:", tokens);
+    chrome.runtime.sendMessage({ action: "tokensFound", tokens: tokens });
+  })
+  .catch((error) => {
+    console.error("Error getting tokens:", error);
+  });
 
 const getHeaders = (): { [key: string]: string } => {
   const headers: { [key: string]: string } = {};
@@ -146,11 +191,12 @@ export const runAllScans = async (hostname: string): Promise<any> => {
     if (jsScripts === 'No JavaScript found') {
       throw new Error('No JavaScript detected on the page.');
     }
-
+    
     const cryptoAnalysis = analyzeCryptoInJavascript(jsScripts);
+    const tokenAnalysis = analyzeTokens(tokens);
     return {
       certificates,
-      tokens,
+      tokenAnalysis,
       headers,
       jsScripts,
       cryptoAnalysis,
