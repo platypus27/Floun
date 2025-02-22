@@ -1,27 +1,77 @@
 import React, { useState } from 'react';
 import './App.css';
 
+// Component for displaying certificates
+const CertificateListComponent: React.FC<{ certificates: any[] }> = ({ certificates }) => {
+  return (
+    <div>
+      <h3>Certificates</h3>
+      <ul>
+        {certificates.map((cert, index) => (
+          <li key={index}>
+            Subject: {cert.subject}, Issuer: {cert.issuer}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Component for displaying tokens
+const TokenListComponent: React.FC<{ tokens: string[] }> = ({ tokens }) => {
+  return (
+    <div>
+      <h3>Tokens</h3>
+      <ul>
+        {tokens.map((token, index) => (
+          <li key={index}>{token}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+// Component for displaying headers
+const HeadersComponent: React.FC<{ headers: { [key: string]: string } }> = ({ headers }) => {
+  return (
+    <div>
+      <h3>Headers</h3>
+      <ul>
+        {Object.entries(headers).map(([key, value]) => (
+          <li key={key}>
+            {key}: {value}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
 const App: React.FC = () => {
-  const [result, setResult] = useState<string>('');
+  const [scanData, setScanData] = useState<any>(null); // Store parsed data
 
   const handleScan = async () => {
-    // Send a message to the content script to start the scan
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs.length > 0) {
         const tabId = tabs[0].id;
         if (tabId !== undefined) {
           chrome.tabs.sendMessage(tabId, { action: 'runScans' }, (response) => {
             if (response && response.status === 'success') {
-              setResult(JSON.stringify(response.data, null, 2));
+              try {
+                console.log('response data', response.data);
+                setScanData(response.data);
+              } catch (error) {
+                setScanData({ error: 'Error parsing JSON' });
+              }
             } else {
-              setResult(`Error: ${response ? response.message : 'Unknown error'}`);
+              setScanData({ error: response ? response.message : 'Unknown error' });
             }
           });
         } else {
-          setResult('No active tab found.');
+          setScanData({ error: 'No active tab found.' });
         }
       } else {
-        setResult('No active tab found.');
+        setScanData({ error: 'No active tab found.' });
       }
     });
   };
@@ -36,9 +86,16 @@ const App: React.FC = () => {
           </button>
         </div>
       </div>
-      {result && (
+      {scanData && scanData.error && (
         <div id="results">
-          <pre>{result}</pre>
+          <p>Error: {scanData.error}</p>
+        </div>
+      )}
+      {scanData && !scanData.error && (
+        <div id="results">
+          {scanData.certificates && <CertificateListComponent certificates={scanData.certificates} />}
+          {scanData.tokens && <TokenListComponent tokens={scanData.tokens} />}
+          {scanData.headers && <HeadersComponent headers={scanData.headers} />}
         </div>
       )}
     </div>

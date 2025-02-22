@@ -10,7 +10,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
-    // Get the page origin from the message.
     const pageOrigin = message.pageOrigin;
 
     console.log("Page origin (background.js, after retrieval):", pageOrigin);
@@ -21,33 +20,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
+    const getCertificates = async (hostname) => {
+      try {
+        const response = await fetch(`https://crt.sh/?q=${hostname}&output=json`);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const certificates = await response.json();
+        return certificates;
+      } catch (error) {
+        console.error('Error fetching certificates:', error);
+        return `Error fetching certificates: ${error.message}`;
+      }
+    };
+
     chrome.scripting.executeScript({
       target: { tabId: tabId },
       func: (pageOrigin) => {
-        console.log("Page origin (injected function, at start):", pageOrigin);
-
-        // Function to run the scans (previously the main part of injectedScript.js)
         const runScans = async () => {
-          console.log("Running scans from injected script!");
-
-          /**
-           * Internal scanning functions used by runAllScans.
-           */
-
-          const getCertificates = async (hostname) => {
-            try {
-              const response = await fetch(`https://crt.sh/?q=${hostname}&output=json`);
-              if (!response.ok) {
-                throw new Error('Network response was not ok');
-              }
-              const certificates = await response.json();
-              return certificates;
-            } catch (error) {
-              console.error('Error fetching certificates:', error);
-              return `Error fetching certificates: ${error.message}`;
-            }
-          };
-
           const getTokens = () => {
             const tokens = [];
             const regex = /([a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+\.[a-zA-Z0-9-_]+)/g;
@@ -121,7 +111,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
               // Only process scripts that belong to the same origin
               if (!scriptSource.startsWith(pageOrigin)) {
-                console.log('Skipping script due to different origin:', scriptSource);
                 continue; // Skip scripts that don't match the page origin
               }
 
@@ -172,13 +161,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                       scriptSource.includes('moz-extension://') ||
                       scriptSource.includes('file://')
                     ) {
-                      console.log('Skipping dynamically injected script due to unsupported protocol:', scriptSource);
                       return; // Skip this script entirely
                     }
 
                     // Only process scripts that belong to the same origin
                     if (!scriptSource.startsWith(pageOrigin)) {
-                      console.log('Skipping script due to different origin:', scriptSource);
                       return; // Skip scripts that don't match the page origin
                     }
 
@@ -211,24 +198,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
           const runAllScans = async (hostname) => {
             try {
-              const [certificates, tokens, headers, jsScripts] = await Promise.all([
-                getCertificates(hostname),
+              const [tokens, headers, jsScripts] = await Promise.all([
                 Promise.resolve(getTokens()),
                 Promise.resolve(getHeaders()),
                 getJavaScript(pageOrigin), // Pass the page origin to getJavaScript
               ]);
 
-              if (jsScripts === 'No JavaScript found') {
-                throw new Error('No JavaScript detected on the page.');
-              }
-
-              // const cryptoAnalysis = analyzeCryptoInJavascript(jsScripts);
               return {
-                certificates,
                 tokens,
                 headers,
                 jsScripts,
-                // cryptoAnalysis,
               };
             } catch (error) {
               console.error('Error running all scans:', error);
@@ -241,13 +220,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const hostname = window.location.hostname; // Get the hostname
           const results = await runAllScans(hostname);
 
-          return results;
+          // Send the results back to the extension
+          chrome.runtime.sendMessage({ action: 'scanResults', data: results });
         };
 
         // Call the function and return the result
-        runScans().then(results => {
-          // Send the results back to the extension
-          chrome.runtime.sendMessage({ action: 'scanResults', data: results });
+        runScans().then((results) => {
+          console.log('Scan results:', results);
+        }).catch((error) => {
+          console.error('Error running scans:', error);
         });
       },
       args: [pageOrigin]
@@ -255,23 +236,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       if (chrome.runtime.lastError) {
         console.error('Script injection failed:', chrome.runtime.lastError.message);
         sendResponse({ status: 'error', message: chrome.runtime.lastError.message });
-        // Check here if the error message is because it could not connect to the extension
-        sendResponse({error: chrome.runtime.lastError.message});
         return;
       }
 
       console.log('Script injected successfully.');
-
-      // Listen for the message from the injected script
-      chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-        if (request.action === 'scanResults') {
-          console.log('Results from injected script:', request.data);
-          sendResponse({ status: 'success', data: request.data });
-          // Remove the listener after receiving the message
-          chrome.runtime.onMessage.removeListener(this);
-        }
-      });
     });
+
+    // Fetch certificates in the background script to avoid CORS issues
+    getCertificates(pageOrigin).then((certificates) => {
+      console.log('Certificates fetched:', certificates);
+      // Combine certificates with other scan results
+      chrome.runtime.sendMessage({ action: 'scanResults', data: { certificates } });
+    }).catch((error) => {
+      console.error('Error fetching certificates:', error);
+      sendResponse({ status: 'error', message: error.message });
+    });
+
     return true;
   }
 });
