@@ -52,8 +52,10 @@ const App: React.FC = () => {
 
   const handleScan = async () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs.length > 0) {
+      if (tabs.length > 0 && tabs[0].url) {
         const tabId = tabs[0].id;
+        const url = new URL(tabs[0].url);
+        console.log(url);
         if (tabId !== undefined) {
           chrome.tabs.sendMessage(tabId, { action: 'runScans' }, (response) => {
             if (response && response.status === 'success') {
