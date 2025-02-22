@@ -1,27 +1,47 @@
 export const analyzeCryptoInJavascript = (scripts: any[]): string[] => {
+  console.log("running analyzeCryptoInJavascript");
   const vulnerabilities: string[] = [];
-
-  // Define patterns for cryptographic algorithms and insecure practices (global flag added)
-  const cryptoPatterns = [
-    { name: 'MD5', regex: /MD5|md5/g },
-    { name: 'SHA-1', regex: /SHA-?1|sha-?1/g },
-    { name: 'DES', regex: /DES|des/g },
-    { name: 'RC4', regex: /RC4|rc4/g },
-    { name: 'CryptoJS', regex: /CryptoJS/g },
-    { name: 'Weak random number generation', regex: /Math\.random\(\)/g },
-    { name: 'Insecure key size', regex: /\.generateKey\(\s*(\d+)\s*\)/g },
-    {
-      name: 'AES with ECB mode',
-      regex: /AES\.encrypt\(.*,\s*.*,\s*{ mode: CryptoJS\.mode\.ECB\s*}\)/g,
+  
+  const encryptionPatterns = [
+    { 
+        name: 'AES Encryption', 
+        // Matches "AES.encrypt(...)" with proper boundaries
+        regex: /\bAES\b\s*\.\s*encrypt\s*\([^)]*\)/gi 
     },
-    { name: 'RSA with weak key size', regex: /RSA\.generateKeyPair\(\s*1024\s*\)/g },
-    { name: 'bcrypt with low rounds', regex: /bcrypt\.hashSync\(.*,\s*5\s*\)/g },
-  ];
+    { 
+        name: 'RSA Key Generation', 
+        // Matches "RSA.generateKeyPair(1024)" or similar with proper boundaries
+        regex: /\bRSA\b\s*\.\s*generate(?:KeyPair|Key)\s*\(\s*\d+\s*\)/gi 
+    },
+    { 
+        name: 'Triple DES Encryption', 
+        // Matches "Triple DES.encrypt(...)" or "3DES.encrypt(...)" ensuring DES is isolated.
+        regex: /\b(?:Triple\s+DES|3DES)\b\s*\.\s*encrypt\s*\([^)]*\)/gi 
+    },
+    { 
+        name: 'DES Encryption', 
+        // Matches "DES.encrypt(...)" with DES as a full word (won't flag "describe")
+        regex: /\bDES\b\s*\.\s*encrypt\s*\([^)]*\)/gi 
+    },
+    { 
+        name: 'RC4 Encryption', 
+        regex: /\bRC4\b\s*\.\s*encrypt\s*\([^)]*\)/gi 
+    },
+    { 
+        name: 'CryptoJS Usage', 
+        // Looks for CryptoJS usage properly
+        regex: /\bCryptoJS\b/gi 
+    },
+    { 
+        name: 'Insecure Random (Math.random)', 
+        regex: /Math\s*\.\s*random\s*\(\s*\)/gi 
+    },
+];
 
   // For each script, search for vulnerabilities and include a code snippet sample.
   scripts.forEach((script) => {
     const content = script.content || '';
-    cryptoPatterns.forEach((pattern) => {
+    encryptionPatterns.forEach((pattern) => {
       // Reset pointer in case regex is global
       pattern.regex.lastIndex = 0;
       let match;
@@ -30,7 +50,6 @@ export const analyzeCryptoInJavascript = (scripts: any[]): string[] => {
         const snippetStart = Math.max(match.index - 30, 0);
         const snippetEnd = Math.min(match.index + match[0].length + 30, content.length);
         const snippet = content.substring(snippetStart, snippetEnd).replace(/\n/g, ' ');
-
         vulnerabilities.push(
           `Found ${pattern.name} in ${script.type} script: ${script.src || 'inline'}\nSample code: ${snippet}`
         );
@@ -38,8 +57,8 @@ export const analyzeCryptoInJavascript = (scripts: any[]): string[] => {
     });
   });
 
-  console.log(scripts);
-  console.log(vulnerabilities);
+  console.log("scripts", scripts);
+  console.log("vuln", vulnerabilities);
 
   return vulnerabilities.length > 0
     ? vulnerabilities

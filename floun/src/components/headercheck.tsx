@@ -28,7 +28,7 @@ interface SslLabsApiResponse {
   endpoints?: Endpoint[];
 }
 
-const HeaderSecurityCheck: React.FC = () => {
+export const HeaderSecurityCheck: React.FC = () => {
   const [tlsStatus, setTlsStatus] = useState<string>('Scanning TLS settings...');
 
   useEffect(() => {
@@ -144,5 +144,3 @@ const HeaderSecurityCheck: React.FC = () => {
 
   return null; // Or return an empty fragment: return <></>;
 };
-
-export default HeaderSecurityCheck;

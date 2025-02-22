@@ -1,51 +1,10 @@
 import React, { useState } from 'react';
 import './App.css';
+import { HeaderSecurityCheck } from './components/headercheck';
+import { analyzeCryptoInJavascript } from './components/javascriptanalysis';
+import { analyzeCertificate } from './components/certificateanalysis';
+import { analyzeTokens } from './components/sessiontokenanalysis';
 
-// Component for displaying certificates
-const CertificateListComponent: React.FC<{ certificates: any[] }> = ({ certificates }) => {
-  return (
-    <div>
-      <h3>Certificates</h3>
-      <ul>
-        {certificates.map((cert, index) => (
-          <li key={index}>
-            Subject: {cert.subject}, Issuer: {cert.issuer}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-// Component for displaying tokens
-const TokenListComponent: React.FC<{ tokens: string[] }> = ({ tokens }) => {
-  return (
-    <div>
-      <h3>Tokens</h3>
-      <ul>
-        {tokens.map((token, index) => (
-          <li key={index}>{token}</li>
-        ))}
-      </ul>
-    </div>
-  );
-};
-
-// Component for displaying headers
-const HeadersComponent: React.FC<{ headers: { [key: string]: string } }> = ({ headers }) => {
-  return (
-    <div>
-      <h3>Headers</h3>
-      <ul>
-        {Object.entries(headers).map(([key, value]) => (
-          <li key={key}>
-            {key}: {value}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-};
 
 const App: React.FC = () => {
   const [scanData, setScanData] = useState<any>(null); // Store parsed data
@@ -61,7 +20,12 @@ const App: React.FC = () => {
             if (response && response.status === 'success') {
               try {
                 console.log('response data', response.data);
+                const headerResults = HeaderSecurityCheck(response.data.headers);
+                const jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
+                const certResults = analyzeCertificate(response.data.certificates);
+                const tokenResults = analyzeTokens(response.data.tokens);
                 setScanData(response.data);
+                // console.log({ headerResults, jsResults, certResults, tokenResults });
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
               }
@@ -95,9 +59,6 @@ const App: React.FC = () => {
       )}
       {scanData && !scanData.error && (
         <div id="results">
-          {scanData.certificates && <CertificateListComponent certificates={scanData.certificates} />}
-          {scanData.tokens && <TokenListComponent tokens={scanData.tokens} />}
-          {scanData.headers && <HeadersComponent headers={scanData.headers} />}
         </div>
       )}
     </div>

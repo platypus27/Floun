@@ -18,8 +18,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
     // Certificate fetching function
     const getCertificates = async (url) => {
-      console.log("url", url);
-      console.log("url.protocol", url.protocol);
       try {
         if (url.protocol == "https:") {
           const domain = url.hostname;
@@ -32,10 +30,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           }
     
           const data = await response.json();
-    
-          console.log(data);
-          console.log(data["result"]);
-          console.log(data["result"]["cert_alg"]);
     
           if (data.length === 0) {
             throw new Error("No certificate found for this domain.");
