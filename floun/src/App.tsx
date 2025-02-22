@@ -6,9 +6,15 @@ const App: React.FC = () => {
   const [result, setResult] = useState<string>('');
 
   const handleScan = async () => {
-    const hostname = window.location.hostname || 'example.com';
-    const scanResults = runAllScans(hostname);
-    setResult(JSON.stringify(scanResults, null, 2));
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs.length > 0 && tabs[0].url) {
+        const url = new URL(tabs[0].url);
+        console.log(url)
+
+        const scanResults = runAllScans(url);
+        setResult(JSON.stringify(scanResults, null, 2));
+      }
+    });
   };
 
   return (

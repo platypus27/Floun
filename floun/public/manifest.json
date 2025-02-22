@@ -3,7 +3,7 @@
   "name": "Floun",
   "version": "1.0",
   "description": "Quantum Resistant Protocol Sentinel",
-  "permissions": ["activeTab", "webRequest", "storage"],
+  "permissions": ["tabs", "activeTab", "webRequest", "storage", "debugger"],
   "host_permissions": ["<all_urls>"],
   "background": {
     "service_worker": "background.js"
