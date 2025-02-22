@@ -55,9 +55,9 @@ const App: React.FC = () => {
       if (tabs.length > 0 && tabs[0].url) {
         const tabId = tabs[0].id;
         const url = new URL(tabs[0].url);
-        console.log(url);
+        const url_properties = {"protocol": url.protocol, "hostname": url.hostname}
         if (tabId !== undefined) {
-          chrome.tabs.sendMessage(tabId, { action: 'runScans', data: url }, (response) => {
+          chrome.tabs.sendMessage(tabId, { action: 'runScans', data: url_properties }, (response) => {
             if (response && response.status === 'success') {
               try {
                 console.log('response data', response.data);
