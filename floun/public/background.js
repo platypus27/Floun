@@ -17,17 +17,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     // Certificate fetching function
-    const getCertificates = async (hostname) => {
+    const getCertificates = async (url) => {
+      console.log("url", url);
       try {
-        const response = await fetch(`https://crt.sh/?q=${hostname}&output=json`);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+        if (url.protocol == "https:") {
+          const domain = url.hostname;
+          const response = await fetch(
+            `https://ssl-checker.io/api/v1/check/${domain}`
+          );
+    
+          if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+          }
+    
+          const data = await response.json();
+    
+          console.log(data);
+          console.log(data["result"]);
+          console.log(data["result"]["cert_alg"]);
+    
+          if (data.length === 0) {
+            throw new Error("No certificate found for this domain.");
+          }
+    
+          return data; // Return the JSON data directly
+        } else {
+          console.error("No certificate found for this domain. (http)");
+          return false;
         }
-        const certificates = await response.json();
-        return certificates;
       } catch (error) {
-        console.error('Error fetching certificates:', error);
-        throw error;
+        console.error("Error fetching certificates:", error);
+        return null; // Handle errors gracefully by returning null
       }
     };
 
