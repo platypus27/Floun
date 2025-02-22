@@ -19,13 +19,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     // Certificate fetching function
     const getCertificates = async (url) => {
       console.log("url", url);
+      console.log("url.protocol", url.protocol);
       try {
-        if (url.protocol == "https:") {
+        if (url.includes("https:")) {
           const domain = url.hostname;
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
-    
+          console.log("response_cert", response);
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
