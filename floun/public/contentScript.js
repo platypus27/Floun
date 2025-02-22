@@ -5,9 +5,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'runScans') {
     console.log("Content script: Received 'runScans' message.  Sending to background...");
     const pageOrigin = window.location.origin;
+<<<<<<< Updated upstream
+=======
+    const url_info = request.data
+    console.log(request.data);
+    console.log(request);
+>>>>>>> Stashed changes
     console.log("Content script pageOrigin:", pageOrigin);
 
-    chrome.runtime.sendMessage({ action: 'scanWebsite', pageOrigin: pageOrigin }, (response) => {
+    chrome.runtime.sendMessage({ action: 'scanWebsite', pageOrigin: pageOrigin, url_info: url_info }, (response) => {
       console.log("Content script: Received response from background script:", response);
 
       if (response && response.status === 'success') {

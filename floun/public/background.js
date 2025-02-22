@@ -167,7 +167,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       let scanResults = injectionResults[0]?.result || {};
 
       try {
-        const certificates = await getCertificates(pageOrigin);
+        const certificates = await getCertificates(message.url_info);
         const combinedResults = { ...scanResults, certificates };
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
