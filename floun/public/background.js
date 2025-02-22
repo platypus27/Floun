@@ -21,7 +21,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.log("url", url);
       console.log("url.protocol", url.protocol);
       try {
-        if (url.includes("https:")) {
+        if (url.protocol == "https:") {
           const domain = url.hostname;
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
