@@ -8,14 +8,13 @@ import EntropyTest from './sessiontokenanalysis/entropytest';
 export const analyzeTokens = (tokens: any[]): string[] => {
   const results: string[] = [];
 
-  tokens.forEach(token => {
+  tokens.forEach(token => {    
     const formatTestResult = TokenFormatTest({ tokenData: { token: token } });
     const entropyTestResult = EntropyTest({ tokenData: { token: token } });
 
-    console.log(`Token: ${token}, Format Test Passed: ${formatTestResult.passed}, Format Test Message: ${formatTestResult.message}`);
-    console.log(`Token: ${token}, Entropy Test Passed: ${entropyTestResult.passed}, Entropy Test Message: ${entropyTestResult.message}`);
+    // console.log(`Token: ${token}, Entropy Test Passed: ${entropyTestResult.passed}, Entropy Test Message: ${entropyTestResult.message}`);
 
-    results.push(`Token: ${token}, Format Test: ${formatTestResult}, Entropy Test: ${entropyTestResult}`);
+    results.push(`Token: ${token}, Format Test Passed: ${formatTestResult.passed}, Format Test Message: ${formatTestResult.message}, Entropy Test Passed: ${entropyTestResult.passed}, Entropy Test Message: ${entropyTestResult.message}`);
   });
 
   return results;

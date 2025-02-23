@@ -1,95 +1,168 @@
-import React from 'react';
-import * as jose from 'jose';
-
 interface TokenData {
-  token: string;
-  timestamp?: number;
-  source?: string;
-  cookieName?: string;
-  httpOnly?: boolean;
-  secure?: boolean;
-  sameSite?: string;
-  headerName?: string;
+    token: string;
+    timestamp?: number;
+    source?: string;
+    cookieName?: string;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: string;
+    headerName?: string;
+    storageKey?: string;
 }
 
 interface TestResult {
-  passed: boolean;
-  message: string;
-  details?: string;
-  format?: string;
-  jwtHeader?: string;
-  jwtPayload?: string;
-  jwtAlgorithm?: string;
+    passed: boolean;
+    message: string;
+    details?: string;
+    format?: string;
+    jwtHeader?: string;
+    jwtPayload?: string;
+    jwtAlgorithm?: string;
+    vulnerabilities?: string[];
 }
 
 const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
-  const runTest = (): TestResult => {
-      const { token } = tokenData;
+    const runTest = (): TestResult => {
+        const { token } = tokenData;
 
-      if (!token || token == "No tokens found") {
-          return { passed: false, message: "Token is missing.", details: "Missing" };
-      }
+        if (!token || token === "No tokens found") {
+            return { passed: false, message: "Token is missing.", details: "Missing" };
+        }
 
-      // 1. Check if it looks like a JWT (three parts separated by dots)
-      const parts = token.split('.');
-      if (parts.length === 3) {
-          try {
-              const [headerB64u, payloadB64u, signatureB64u] = parts;
+        // Base64URL decoding function (Correct)
+        const base64urlDecode = (str: string) => {
+            str = str.replace(/-/g, '+').replace(/_/g, '/');
+            while (str.length % 4) {
+                str += '=';
+            }
+            try {
+                return atob(str);
+            } catch (error) {
+                return null;
+            }
+        };
 
-              // 2. Try to decode the header and payload (basic format check)
-            const jwtHeader = atob(headerB64u);
-            const jwtPayload = atob(payloadB64u);
+        // 1. JWT Check with Vulnerability Analysis
+        const parts = token.split('.');
+        if (parts.length === 3) {
+            const [headerB64u, payloadB64u] = parts;
+            const jwtHeader = base64urlDecode(headerB64u);
+            const jwtPayload = base64urlDecode(payloadB64u);
 
-              // 3. If we got here, it's *probably* a JWT. Let's parse the header (optional)
-              let jwtAlgorithm: string | undefined;
-              try {
-                  const parsedHeader = JSON.parse(jwtHeader);
-                  jwtAlgorithm = parsedHeader.alg;
-              } catch (headerParseError) {
-                  jwtAlgorithm = undefined; // Could not parse header
-              }
+            if (jwtHeader && jwtPayload) {
+                let jwtAlgorithm: string | undefined;
+                let jwtExp: number | undefined;
+                const vulnerabilities: string[] = [];
 
-              // 4. It passed the basic checks, so it appears to be a valid JWT
-              return {
-                  passed: true,
-                  message: "Token appears to be a valid JWT.",
-                  details: "jwt",
-                  format: "jwt",
-                  jwtHeader: jwtHeader,
-                  jwtPayload: jwtPayload,
-                  jwtAlgorithm: jwtAlgorithm,
-              };
+                try {
+                    const parsedHeader = JSON.parse(jwtHeader);
+                    jwtAlgorithm = parsedHeader.alg;
 
-          } catch (error) {
-              // 5. If *anything* went wrong, it's a malformed JWT
-              return {
-                  passed: false,
-                  message: "Token is a malformed JWT.",
-                  details: "Invalid JWT",
-              };
-          }
-      }
-      // 6. If it doesn't look like a JWT, check for opaque token
-      else if (token.length > 32) {
-          return {
-              passed: true,
-              message: "Token appears to be an opaque token",
-              details: "opaque",
-          };
-      }
-    
-      // 7. Otherwise it's an invalid opaque token
-      else{
-         return {
-              passed: false,
-              message: "Token is too short to be an opaque token.",
-              details: "Invalid Opaque",
-          }
-      }
-     
-  };
+                    // Check for "none" algorithm (major vulnerability)
+                    if (jwtAlgorithm === "none") {
+                        vulnerabilities.push("JWT uses 'none' algorithm, which is insecure.");
+                    }
 
-  return runTest();
+                    // Check for missing "kid" (optional but important for key rotation)
+                    if (!parsedHeader.kid) {
+                        vulnerabilities.push("JWT does not have a 'kid' claim, which may be insecure for key rotation.");
+                    }
+                } catch (headerParseError) {
+                    jwtAlgorithm = undefined;
+                }
+
+                try {
+                    const parsedPayload = JSON.parse(jwtPayload);
+                    jwtExp = parsedPayload.exp;
+
+                    // Check if expiration is missing or very short-lived
+                    if (typeof jwtExp !== 'number') {
+                        vulnerabilities.push("JWT 'exp' claim is missing or not a number.");
+                    } else {
+                        const expTime = new Date(jwtExp * 1000);
+                        if (expTime < new Date()) {
+                            vulnerabilities.push("JWT is expired.");
+                        }
+                    }
+                } catch (payloadParseError: any) {
+                    vulnerabilities.push(`Error parsing JWT payload: ${payloadParseError.message}`);
+                }
+
+                return {
+                    passed: vulnerabilities.length === 0,
+                    message: vulnerabilities.length === 0 ? "Token appears to be a valid JWT." : "JWT has potential vulnerabilities!",
+                    details: "jwt",
+                    format: "jwt",
+                    jwtHeader,
+                    jwtPayload,
+                    jwtAlgorithm,
+                    vulnerabilities,
+                };
+            }
+        }
+
+        // 2. Hexadecimal Token Check
+        if (token.length >= 32 && /^[a-f0-9]+$/i.test(token)) {
+            return {
+                passed: true,
+                message: "Token likely matches hex format.",
+                format: "hex",
+                details: "hex",
+            };
+        }
+
+        // 3. UUID + Alphanumeric Check
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-[a-zA-Z0-9]+$/.test(token)) {
+            return {
+                passed: true,
+                message: "Token likely matches UUID + alphanumeric format.",
+                format: "uuid_alphanumeric",
+                details: "uuid_alphanumeric",
+            };
+        }
+
+        // 4. Improved Base64URL Check
+        if (/^[A-Za-z0-9_-]+$/.test(token) && token.length % 4 !== 1) {
+            const decoded = base64urlDecode(token);
+            if (decoded) {
+                return {
+                    passed: true,
+                    message: "Token likely matches base64url format.",
+                    format: "base64url",
+                    details: "base64url",
+                };
+            }
+        }
+
+        // 5. Structured Opaque Token Check
+        if (/^(v\d+_).+/.test(token) || token.includes("_")) {
+            return {
+                passed: true,
+                message: "Token likely matches structured opaque format.",
+                format: "opaque_structured",
+                details: "opaque_structured",
+            };
+        }
+
+        // 6. General Opaque Token Check (last fallback)
+        if (token.length >= 16) {
+            return {
+                passed: true,
+                message: "Token does not match known formats and is likely an opaque token.",
+                details: "opaque",
+                format: "opaque",
+            };
+        }
+
+        // 7. Fallback: Unknown
+        return {
+            passed: false,
+            message: "Token format could not be determined (too short).",
+            details: "Unknown Format",
+        };
+    };
+
+    return runTest();
 };
 
 export default TokenFormatTest;
