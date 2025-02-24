@@ -1,7 +1,10 @@
+import sys
 from sslyze import ServerNetworkLocation, Scanner, ServerScanRequest, CipherSuiteAcceptedByServer
 from sslyze.plugins.scan_commands import ScanCommand
 
-server_location = ServerNetworkLocation(hostname="www.youtube.com", port=443)
+hostname = sys.argv[1] if len(sys.argv) > 1 else "www.google.com"
+
+server_location = ServerNetworkLocation(hostname=hostname, port=443)
 server_scan_request = ServerScanRequest(
     server_location,
     scan_commands={

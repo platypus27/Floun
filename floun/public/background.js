@@ -1,4 +1,3 @@
-import { performHeaderSecurityCheck } from '../src/components/headercheck.tsx';
 console.log("test3");
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message received in background script:', message);
@@ -164,7 +163,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       try {
         const certificates = await getCertificates(message.url_info);
-        const combinedResults = { ...scanResults, certificates };
+        
+        // Call your backend endpoint to run the python TLS scan
+        const hostname = new URL(pageOrigin).hostname;
+        chrome.runtime.sendMessage({ action: 'runTlsScan', hostname });
+        
+        // You may still combine other scan results here and send a response if needed.
+        sendResponse({ status: 'success', message: 'TLS scan initiated via headercheck.tsx' });
+        
+        const combinedResults = { ...scanResults, certificates} ;
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {
