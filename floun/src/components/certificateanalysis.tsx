@@ -10,19 +10,17 @@ const QUANTUM_SAFE_SIGNATURES = [
   "crystals-kyber",
 ];
 
-const analyzeCertificate = async (certificate: any): Promise<any | null> => {
+export const analyzeCertificate = (certificate: any): Record<string, string> | null => {
   const certificate_algo = certificate["result"]["cert_alg"];
   const analysisResult: Record<string, string> = {};
 
   if (QUANTUM_SAFE_SIGNATURES.includes(certificate_algo)) {
-    analysisResult["Signature Algorithm"] = "✅ Quantum-Safe";
+    analysisResult["Signature Algorithm"] = "Certificate is Quantum-Safe";
   } else {
     analysisResult["Signature Algorithm"] =
-      "❌ Not Quantum-Safe (Signature algorithm not in quantum-safe list)";
+      "Certificate Not Quantum-Safe, Hash Result: " + certificate_algo;
   }
 
   console.log(analysisResult);
   return analysisResult;
 };
-
-export { analyzeCertificate };

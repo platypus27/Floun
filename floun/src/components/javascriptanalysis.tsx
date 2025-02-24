@@ -28,5 +28,5 @@ export const analyzeCryptoInJavascript = (scripts: any[]): string[] => {
 
   return vulnerabilities.length > 0
     ? vulnerabilities
-    : ['No cryptographic vulnerabilities found'];
+    : ['No cryptographic vulnerabilities found in the Javascript'];
 };
