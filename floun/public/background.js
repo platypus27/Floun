@@ -1,5 +1,9 @@
+<<<<<<< Updated upstream
 import { performHeaderSecurityCheck } from '../src/components/headercheck.tsx';
 console.log("test3");
+=======
+import performHeaderSecurityCheck from '../src/components/headerSecurity.js';
+>>>>>>> Stashed changes
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message received in background script:', message);
 
@@ -26,7 +30,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
+<<<<<<< Updated upstream
           console.log("response_cert", response);
+=======
+          // console.log("response_cert", response);
+          // const response2 = await fetch(
+          //   `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`
+          // );
+          // console.log("Test headerSecurityStatus", response2.json());
+>>>>>>> Stashed changes
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
@@ -164,7 +176,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       try {
         const certificates = await getCertificates(message.url_info);
-        const combinedResults = { ...scanResults, certificates };
+
+        const hostname = new URL(pageOrigin).hostname;
+        const headerSecurityStatus = await performHeaderSecurityCheck(hostname);
+
+
+        const combinedResults = { ...scanResults, certificates, headerSecurityStatus };
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {
