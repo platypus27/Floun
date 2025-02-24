@@ -45,7 +45,7 @@ async function createReport() {
     console.log("Generating AI report...");
 
     try {
-        // Example results from your program
+        // Example results from the program
         const results = [
             "Found AES Encryption in inline script: inline",
             "Found CryptoJS Usage in inline script: inline",
