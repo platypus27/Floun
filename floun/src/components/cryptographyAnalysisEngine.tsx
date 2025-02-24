@@ -37,8 +37,4 @@ export const getEncryptionPatterns = (): EncryptionPattern[] => [
         // Looks for CryptoJS usage properly
         regex: /\bCryptoJS\b/gi 
     },
-    { 
-        name: 'Insecure Random (Math.random)', 
-        regex: /Math\s*\.\s*random\s*\(\s*\)/gi 
-    },
 ];
