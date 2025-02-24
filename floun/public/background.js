@@ -1,3 +1,5 @@
+import { performHeaderSecurityCheck } from '../src/components/headercheck.tsx';
+console.log("test3");
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message received in background script:', message);
 
