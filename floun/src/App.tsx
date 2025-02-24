@@ -20,12 +20,13 @@ const App: React.FC = () => {
             if (response && response.status === 'success') {
               try {
                 console.log('response data', response.data);
-                const headerResults = HeaderSecurityCheck(response.data.headers);
+                // const headerResults = HeaderSecurityCheck(response.data.headers);
                 const jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
                 const certResults = analyzeCertificate(response.data.certificates);
                 const tokenResults = analyzeTokens(response.data.tokens);
+                // console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
+                console.log("finalresults", jsResults, certResults, tokenResults);
                 setScanData(response.data);
-                console.log({ headerResults, jsResults, certResults, tokenResults });
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
               }

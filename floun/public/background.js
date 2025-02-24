@@ -1,5 +1,5 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Message received in background script:', message);
+  // console.log('Message received in background script:', message);
 
   if (message.action === 'scanWebsite') {
     const tabId = sender.tab?.id;
@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     const pageOrigin = message.pageOrigin;
-    console.log("Page origin (background.js, after retrieval):", pageOrigin);
+    // console.log("Page origin (background.js, after retrieval):", pageOrigin);
     if (!pageOrigin) {
       sendResponse({ status: 'error', message: 'Page origin not found' });
       return true;
@@ -24,7 +24,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
-          console.log("response_cert", response);
+          // console.log("response_cert", response);
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
