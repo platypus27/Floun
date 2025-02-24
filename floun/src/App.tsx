@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
-import { HeaderSecurityCheck } from './components/headercheck';
-import { analyzeCryptoInJavascript } from './components/javascriptanalysis';
-import { analyzeCertificate } from './components/certificateanalysis';
-import { analyzeTokens } from './components/sessiontokenanalysis';
+import { HeaderSecurityCheck } from './components/headerAnalysis';
+import { analyzeCryptoInJavascript } from './components/javascriptAnalysis';
+import { analyzeCertificate } from './components/certificateAnalysis';
+import { analyzeTokens } from './components/tokenAnalysis';
 
 
 const App: React.FC = () => {
@@ -25,7 +25,7 @@ const App: React.FC = () => {
                 const certResults = analyzeCertificate(response.data.certificates);
                 const tokenResults = analyzeTokens(response.data.tokens);
                 setScanData(response.data);
-                // console.log({ headerResults, jsResults, certResults, tokenResults });
+                console.log({ headerResults, jsResults, certResults, tokenResults });
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
               }
