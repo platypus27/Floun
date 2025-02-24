@@ -1,6 +1,6 @@
-import { generateChatMessage } from "./geminiService";
+import { generateChatMessage } from "./reportgen/geminiService";
 import * as fs from "fs-extra";
-import { generatePDFReport } from "./pdfService";
+import { generatePDFReport } from "./reportgen/pdfService";
 
 // Function to sanitize and clean content
 function sanitizeContent(text: string): string {
