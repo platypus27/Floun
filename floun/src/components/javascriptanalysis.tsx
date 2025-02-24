@@ -1,7 +1,6 @@
 import { getEncryptionPatterns } from './cryptographyAnalysisEngine';
 
 export const analyzeCryptoInJavascript = (scripts: any[]): string[] => {
-  console.log("running analyzeCryptoInJavascript");
   const vulnerabilities: string[] = [];
   const encryptionPatterns = getEncryptionPatterns();
 

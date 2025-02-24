@@ -20,8 +20,14 @@ const App: React.FC = () => {
             if (response && response.status === 'success') {
               try {
                 console.log('response data', response.data);
+                let jsResults: string[] = [];
+                if (response.data.jsScripts && response.data.jsScripts.content && response.data.jsScripts.content !== "No Javscript found") {
+                  jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
+                } else {
+                  console.log("No JavaScript found to analyze.");
+                  jsResults = []; // Leave the results empty
+                }
                 // const headerResults = HeaderSecurityCheck(response.data.headers);
-                const jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
                 const certResults = analyzeCertificate(response.data.certificates);
                 const tokenResults = analyzeTokens(response.data.tokens);
                 // console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
