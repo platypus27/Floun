@@ -21,7 +21,7 @@ interface TestResult {
     vulnerabilities?: string[];
 }
 
-const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
+const FormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
     const runTest = (): TestResult => {
         const { token } = tokenData;
 
@@ -29,7 +29,7 @@ const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult =>
             return { passed: false, message: "Token is missing.", details: "Missing" };
         }
 
-        // Base64URL decoding function (Correct)
+        // Base64URL decoding function
         const base64urlDecode = (str: string) => {
             str = str.replace(/-/g, '+').replace(/_/g, '/');
             while (str.length % 4) {
@@ -41,6 +41,19 @@ const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult =>
                 return null;
             }
         };
+
+
+        // 0. Short Token Check
+        const minLength = 32;
+
+        if (token.length < minLength) { //Adjust this value
+            return {
+                passed: false,
+                message: `Token is too short (${token.length} characters, minimum ${minLength} recommended) and may be vulnerable to brute-force attacks.`,
+                details: "Short Token",
+                format: "short",
+            };
+        }
 
         // 1. JWT Check with Vulnerability Analysis
         const parts = token.split('.');
@@ -58,17 +71,28 @@ const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult =>
                     const parsedHeader = JSON.parse(jwtHeader);
                     jwtAlgorithm = parsedHeader.alg;
 
+                    // Check for "alg" property existence.
+                    if (!("alg" in parsedHeader)) {
+                       vulnerabilities.push("JWT does not have an 'alg' claim, which is insecure.");
+                    }
+
                     // Check for "none" algorithm (major vulnerability)
                     if (jwtAlgorithm === "none") {
                         vulnerabilities.push("JWT uses 'none' algorithm, which is insecure.");
+                    }
+
+                    // Check for weak algorithms.
+                    if (jwtAlgorithm === "HS256" && token.length < 100) {
+                        vulnerabilities.push("JWT uses 'HS256' algorithm with a short length, which is weak.");
                     }
 
                     // Check for missing "kid" (optional but important for key rotation)
                     if (!parsedHeader.kid) {
                         vulnerabilities.push("JWT does not have a 'kid' claim, which may be insecure for key rotation.");
                     }
-                } catch (headerParseError) {
+                } catch (headerParseError: any) {
                     jwtAlgorithm = undefined;
+                     vulnerabilities.push(`Error parsing JWT header: ${headerParseError.message}`);
                 }
 
                 try {
@@ -101,6 +125,7 @@ const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult =>
             }
         }
 
+
         // 2. Hexadecimal Token Check
         if (token.length >= 32 && /^[a-f0-9]+$/i.test(token)) {
             return {
@@ -121,7 +146,7 @@ const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult =>
             };
         }
 
-        // 4. Improved Base64URL Check
+        // 4. Base64URL Check
         if (/^[A-Za-z0-9_-]+$/.test(token) && token.length % 4 !== 1) {
             const decoded = base64urlDecode(token);
             if (decoded) {
@@ -165,4 +190,4 @@ const TokenFormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult =>
     return runTest();
 };
 
-export default TokenFormatTest;
+export default FormatTest;
