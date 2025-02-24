@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Encryption Test Page</title>
+    <!-- Load CryptoJS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body>
+    <h1>Encryption Test Page</h1>
+    <script>
+        // Using CryptoJS to call AES.encrypt as an example
+        const data = "Hello, world!";
+        const key = CryptoJS.enc.Utf8.parse("1234567890123456");
+        const encrypted = CryptoJS.AES.encrypt(data, key, { mode: CryptoJS.mode.ECB });
+        console.log("Encrypted Data:", encrypted.toString());
+    </script>
+</body>
+</html>
