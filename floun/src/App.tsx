@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import './App.css';
 import { HeaderSecurityCheck } from './components/headerAnalysis';
-import { analyzeCryptoInJavascript } from './components/javascriptAnalysis';
-import { analyzeCertificate } from './components/certificateAnalysis';
+import { analyzeCryptoInJavascript } from './components/javascriptanalysis';
+import { analyzeCertificate } from './components/certificateanalysis';
 import { analyzeTokens } from './components/tokenAnalysis';
 
 
