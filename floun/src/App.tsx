@@ -21,7 +21,7 @@ const App: React.FC = () => {
               try {
                 console.log('response data', response.data);
                 let jsResults: string[] = [];
-                if (response.data.jsScripts && response.data.jsScripts.content && response.data.jsScripts.content !== "No Javscript found") {
+                if (response.data.jsScripts) {
                   jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
                 } else {
                   console.log("No JavaScript found to analyze.");

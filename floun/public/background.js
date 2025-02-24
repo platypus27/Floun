@@ -131,7 +131,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               scripts.push({ type: 'inline', content: scriptElement.textContent || '' });
             }
           }
-          return scripts.length > 0 ? scripts : 'No JavaScript found';
+          return
         };
 
         const runAllScans = async (hostname) => {
