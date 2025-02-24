@@ -131,7 +131,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               scripts.push({ type: 'inline', content: scriptElement.textContent || '' });
             }
           }
-          return
+          return scripts; // Return the collected scripts, including inline scripts.
         };
 
         const runAllScans = async (hostname) => {
