@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { SHODAN_API_KEY } from "../config";  // Adjust path as needed
+import { SHODAN_API_KEY } from "../shodankey";  // Adjust path as needed
 
 interface ShodanSSLCheckerProps {
   host: string;
