@@ -1,9 +1,12 @@
 import { useState } from "react";
+import { SHODAN_API_KEY } from "../config";  // Adjust path as needed
 
-const SHODAN_API_KEY = "YOUR_API_KEY"; // Replace with your actual key
+interface ShodanSSLCheckerProps {
+  host: string;
+}
 
-const ShodanSSLChecker = () => {
-  const [host, setHost] = useState("youtube.com");
+const ShodanSSLChecker: React.FC<ShodanSSLCheckerProps> = ({ host: initialHost }) => {
+  const [host, setHost] = useState(initialHost);
   const [ciphers, setCiphers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -11,7 +14,6 @@ const ShodanSSLChecker = () => {
   const fetchSSLInfo = async () => {
     setLoading(true);
     setError(null);
-
     try {
       // Step 1: Resolve domain to IP
       const dnsResponse = await fetch(
@@ -31,9 +33,10 @@ const ShodanSSLChecker = () => {
       const sslData = await sslResponse.json();
 
       // Extract SSL ciphers
-      const cipherNames = sslData.ssl?.cipher?.name
-        ? [sslData.ssl.cipher.name]
-        : sslData.ssl?.ciphers?.map((c: { name: string }) => c.name) || [];
+      const cipherNames =
+        sslData.ssl?.cipher?.name
+          ? [sslData.ssl.cipher.name]
+          : sslData.ssl?.ciphers?.map((c: { name: string }) => c.name) || [];
 
       setCiphers(cipherNames);
     } catch (err: any) {
