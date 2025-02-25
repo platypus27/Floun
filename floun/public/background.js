@@ -17,6 +17,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
+    const getTLS = async (url) => {
+      try {
+        const domain = url.hostname;
+        const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
+        const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
+        console.log("shodan_url", shodan_url);
+
+        const response = await fetch(shodan_url);
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("header data", data);
+        return data;
+
+      } catch (error) {
+        console.error("Error fetching TLS:", error);
+        return null; // Handle errors gracefully by returning null
+      }
+    };
+
     // Certificate fetching function
     const getCertificates = async (url) => {
       try {
@@ -169,12 +191,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       try {
         const certificates = await getCertificates(message.url_info);
+<<<<<<< Updated upstream
 
         const hostname = new URL(pageOrigin).hostname;
         const headerSecurityStatus = await performHeaderSecurityCheck(hostname);
 
 
         const combinedResults = { ...scanResults, certificates, headerSecurityStatus };
+=======
+        const TLS = await getTLS(message.url_info);
+        console.log("TLS", TLS);
+        const combinedResults = { ...scanResults, certificates };
+>>>>>>> Stashed changes
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {
