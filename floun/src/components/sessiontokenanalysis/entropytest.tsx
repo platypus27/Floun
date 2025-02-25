@@ -14,6 +14,7 @@ interface TokenData {
 interface TestResult {
   passed: boolean;
   message: string;
+  vulnerabilities?: string[];
 }
 
 const EntropyTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {

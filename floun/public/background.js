@@ -1,11 +1,6 @@
-<<<<<<< Updated upstream
-import { performHeaderSecurityCheck } from '../src/components/headercheck.tsx';
-console.log("test3");
-=======
 import performHeaderSecurityCheck from '../src/components/headerSecurity.js';
->>>>>>> Stashed changes
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Message received in background script:', message);
+  // console.log('Message received in background script:', message);
 
   if (message.action === 'scanWebsite') {
     const tabId = sender.tab?.id;
@@ -16,7 +11,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     const pageOrigin = message.pageOrigin;
-    console.log("Page origin (background.js, after retrieval):", pageOrigin);
+    // console.log("Page origin (background.js, after retrieval):", pageOrigin);
     if (!pageOrigin) {
       sendResponse({ status: 'error', message: 'Page origin not found' });
       return true;
@@ -30,15 +25,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
-<<<<<<< Updated upstream
           console.log("response_cert", response);
-=======
           // console.log("response_cert", response);
           // const response2 = await fetch(
           //   `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`
           // );
           // console.log("Test headerSecurityStatus", response2.json());
->>>>>>> Stashed changes
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
@@ -68,14 +60,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const getTokens = () => {
           return new Promise((resolve, reject) => {
             const tokens = [];
-            const tokenRegex = /^[a-zA-Z0-9!@#$%^&*()_\-+=`~[\]{}|;':",.\/<>?]{16,512}$/;
+            const sessionTokenRegex = /^(?:[a-zA-Z0-9+/]{24,}=*|[a-f0-9]{32,}|[a-zA-Z0-9_-]{36,})$/;
         
-            // Scan cookies using document.cookie
+            // Scan cookies 
             const cookies = document.cookie.split(';');
             cookies.forEach((cookie) => {
               const parts = cookie.split('=');
-              if (parts[1] && tokenRegex.test(parts[1].trim())) {
-                tokens.push(parts[1].trim());
+              const cookieValue = parts[1] ? parts[1].trim() : ''; 
+              if (cookieValue && sessionTokenRegex.test(cookieValue)) {
+                tokens.push(cookieValue);
               }
             });
         
@@ -83,8 +76,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             for (let i = 0; i < localStorage.length; i++) {
               const key = localStorage.key(i);
               const value = localStorage.getItem(key);
-              if (value && tokenRegex.test(value.trim())) {
-                tokens.push(value.trim());
+              if (typeof value === 'string' && value && sessionTokenRegex.test(value)) {
+                tokens.push(value);
               }
             }
         
@@ -92,8 +85,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             for (let i = 0; i < sessionStorage.length; i++) {
               const key = sessionStorage.key(i);
               const value = sessionStorage.getItem(key);
-              if (value && tokenRegex.test(value.trim())) {
-                tokens.push(value.trim());
+              if (typeof value === 'string' && value && sessionTokenRegex.test(value)) {
+                tokens.push(value);
               }
             }
         
@@ -145,7 +138,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               scripts.push({ type: 'inline', content: scriptElement.textContent || '' });
             }
           }
-          return scripts.length > 0 ? scripts : 'No JavaScript found';
+          return scripts; // Return the collected scripts, including inline scripts.
         };
 
         const runAllScans = async (hostname) => {
