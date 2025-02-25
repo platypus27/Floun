@@ -1,12 +1,12 @@
-import { useState } from "react";
-import { SHODAN_API_KEY } from "../shodankey";  // Adjust path as needed
+/* eslint-disable react/prop-types */
+import { useState, useEffect } from "react";
+import { SHODAN_API_KEY } from "../shodankey";
 
 interface ShodanSSLCheckerProps {
   host: string;
 }
 
-const ShodanSSLChecker: React.FC<ShodanSSLCheckerProps> = ({ host: initialHost }) => {
-  const [host, setHost] = useState(initialHost);
+const ShodanSSLChecker: React.FC<ShodanSSLCheckerProps> = ({ host }) => {
   const [ciphers, setCiphers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,36 +46,25 @@ const ShodanSSLChecker: React.FC<ShodanSSLCheckerProps> = ({ host: initialHost }
     }
   };
 
+  useEffect(() => {
+    fetchSSLInfo();
+  }, [host]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
-    <div className="p-4 bg-gray-900 text-white rounded-lg">
-      <h2 className="text-lg font-bold">Shodan SSL Cipher Checker</h2>
-      <input
-        type="text"
-        className="mt-2 p-2 bg-gray-700 border border-gray-600 rounded"
-        value={host}
-        onChange={(e) => setHost(e.target.value)}
-        placeholder="Enter domain (e.g., youtube.com)"
-      />
-      <button
-        onClick={fetchSSLInfo}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        disabled={loading}
-      >
-        {loading ? "Scanning..." : "Check SSL Ciphers"}
-      </button>
-
-      {error && <p className="text-red-500 mt-2">{error}</p>}
-
-      {ciphers.length > 0 && (
-        <div className="mt-4">
-          <h3 className="text-md font-semibold">SSL Ciphers Found:</h3>
-          <ul className="mt-2 list-disc list-inside">
-            {ciphers.map((cipher, index) => (
-              <li key={index}>{cipher}</li>
-            ))}
-          </ul>
-        </div>
-      )}
+    <div>
+      <ul>
+        {ciphers.map((cipher, index) => (
+          <li key={index}>{cipher}</li>
+        ))}
+      </ul>
     </div>
   );
 };

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import './App.css';
-import { HeaderSecurityCheck } from './components/headercheck';
-import { analyzeCryptoInJavascript } from './components/javascriptanalysis';
-import { analyzeCertificate } from './components/certificateanalysis';
-import { analyzeTokens } from './components/sessiontokenanalysis';
+import { HeaderSecurityCheck } from './components/headerAnalysis';
+import { analyzeCryptoInJavascript } from './components/javascriptAnalysis';
+import { analyzeCertificate } from './components/certificateAnalysis';
+import { analyzeTokens } from './components/tokenAnalysis';
 
 
 const App: React.FC = () => {
@@ -20,12 +20,19 @@ const App: React.FC = () => {
             if (response && response.status === 'success') {
               try {
                 console.log('response data', response.data);
-                const headerResults = HeaderSecurityCheck(response.data.headers);
-                const jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
+                let jsResults: string[] = [];
+                if (response.data.jsScripts) {
+                  jsResults = analyzeCryptoInJavascript(response.data.jsScripts);
+                } else {
+                  console.log("No JavaScript found to analyze.");
+                  jsResults = []; // Leave the results empty
+                }
+                // const headerResults = HeaderSecurityCheck(response.data.headers);
                 const certResults = analyzeCertificate(response.data.certificates);
                 const tokenResults = analyzeTokens(response.data.tokens);
+                // console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
+                console.log("finalresults", jsResults, certResults, tokenResults);
                 setScanData(response.data);
-                // console.log({ headerResults, jsResults, certResults, tokenResults });
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
               }

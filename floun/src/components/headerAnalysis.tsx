@@ -28,7 +28,7 @@ interface SslLabsApiResponse {
 
 console.log("test");
 
-export async function performHeaderSecurityCheck(hostname: string): Promise<string> {
+export async function HeaderSecurityCheck(hostname: string): Promise<string> {
   const url = `https://api.ssllabs.com/api/v3/analyze?host=${hostname}&all=on`;
   console.log(`Fetching data from SSL Labs API for host: ${hostname}`);
 
