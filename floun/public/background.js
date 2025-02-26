@@ -1,4 +1,3 @@
-import performHeaderSecurityCheck from '../src/components/headerSecurity.js';
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // console.log('Message received in background script:', message);
 
@@ -16,18 +15,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ status: 'error', message: 'Page origin not found' });
       return true;
     }
-
+    
     const getTLS = async (url) => {
       try {
         const domain = url.hostname;
-        const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
-        const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
-        console.log("shodan_url", shodan_url);
+        //const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
+        //const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
+        const shodan_url = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
+        console.log("shodan_url", shodan_url );
 
         const response = await fetch(shodan_url);
-        if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-        }
+        console.log("response_TLS", response);
 
         const data = await response.json();
         console.log("header data", data);
@@ -49,10 +47,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           );
           console.log("response_cert", response);
           // console.log("response_cert", response);
-          // const response2 = await fetch(
-          //   `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`
-          // );
-          // console.log("Test headerSecurityStatus", response2.json());
+
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
@@ -191,18 +186,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       try {
         const certificates = await getCertificates(message.url_info);
-<<<<<<< Updated upstream
-
-        const hostname = new URL(pageOrigin).hostname;
-        const headerSecurityStatus = await performHeaderSecurityCheck(hostname);
-
-
-        const combinedResults = { ...scanResults, certificates, headerSecurityStatus };
-=======
         const TLS = await getTLS(message.url_info);
         console.log("TLS", TLS);
-        const combinedResults = { ...scanResults, certificates };
->>>>>>> Stashed changes
+        const combinedResults = { ...scanResults, certificates, TLS };
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {

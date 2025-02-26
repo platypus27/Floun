@@ -9,10 +9,8 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     console.log(request.data);
     console.log(request);
     console.log("Content script pageOrigin:", pageOrigin);
-    console.log("test1");
 
     chrome.runtime.sendMessage({ action: 'scanWebsite', pageOrigin: pageOrigin, url_info: url_info }, (response) => {
-      console.log("test2");
       console.log("Content script: Received response from background script:", response);
 
       if (response && response.status === 'success') {
