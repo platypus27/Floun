@@ -1,3 +1,4 @@
+/// <reference types="chrome"/>
 import React, { useState } from 'react';
 import './App.css';
 import { HeaderSecurityCheck } from './components/headerAnalysis';
