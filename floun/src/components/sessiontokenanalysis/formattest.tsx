@@ -26,7 +26,7 @@ const FormatTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
         const { token } = tokenData;
 
         if (!token || token === "No tokens found") {
-            return { passed: false, message: "Token is missing.", details: "Missing" };
+            return { passed: false, message: "No tokens found", details: "Missing" };
         }
 
         // Base64URL decoding function
