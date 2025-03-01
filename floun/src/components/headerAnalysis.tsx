@@ -75,6 +75,7 @@ export const HeaderSecurityCheck = (headers: any): Record<string, string> | null
     }
   }
 
+  // Generate Result Output
   if (quantumSafeCiphers.length > 0) {
     Result["Signature Algorithm"] = `✅ Found ${quantumSafeCiphers.length} Experimental Quantum-Safe Cipher(s): ` +
       quantumSafeCiphers.join(", ");
