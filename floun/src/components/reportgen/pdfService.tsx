@@ -1,5 +1,5 @@
-import PDFDocument from "pdfkit";
-import fs from "fs";
+import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { saveAs } from "file-saver"; // Correct import for file-saver
 
 interface ReportContent {
     executiveSummary: string;
@@ -10,124 +10,99 @@ interface ReportContent {
 }
 
 /**
- * Generate a PDF report with a logo, centralized headers, and a footer.
- * @param coverDetails - Report title and logo path
+ * Generate a PDF report with dynamic content.
+ * @param coverDetails - Report title and optional logo path
  * @param content - Report content
- * @param outputPath - File path to save the PDF
  */
-export function generatePDFReport(
-    coverDetails: { title: string; logoPath: string },
-    content: ReportContent,
-    outputPath: string
+export async function generatePDFReport(
+    coverDetails: { title: string; logoBase64?: string }, // Logo is optional
+    content: ReportContent
 ): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-        try {
-            const doc = new PDFDocument({
-                size: "A4",
-                margins: { top: 50, bottom: 50, left: 50, right: 50 }
+    try {
+        // Create a new PDF document
+        const pdfDoc = await PDFDocument.create();
+        const page = pdfDoc.addPage();
+
+        // Load a standard font
+        const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+        // Define layout constants
+        const { width, height } = page.getSize();
+        const margin = 50;
+        let yOffset = height - margin; // Start from the top
+
+        // Add logo (if provided)
+        if (coverDetails.logoBase64) {
+            const logoImage = await pdfDoc.embedJpg(coverDetails.logoBase64);
+            const logoDims = logoImage.scale(0.2); // Adjust logo size
+            page.drawImage(logoImage, {
+                x: margin,
+                y: yOffset - logoDims.height,
+                width: logoDims.width,
+                height: logoDims.height,
             });
-            const stream = fs.createWriteStream(outputPath);
-            doc.pipe(stream);
-
-            // ========== LOGO ==========
-            if (fs.existsSync(coverDetails.logoPath)) {
-                doc.image(coverDetails.logoPath, 50, 50, { width: 100 });
-            }
-
-            // ========== TITLE ==========
-            doc.fontSize(20)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text(coverDetails.title, { align: "center" })
-                .moveDown(2);
-
-            // ========== EXECUTIVE SUMMARY ==========
-            doc.fontSize(14)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text("Executive Summary", { align: "center" })
-                .moveDown(1);
-
-            doc.fontSize(12)
-                .font("Helvetica")
-                .fillColor("#000")
-                .text(content.executiveSummary, { align: "left", lineGap: 5 })
-                .moveDown(2);
-
-            // ========== VULNERABLE CRYPTOGRAPHIC METHODS ==========
-            doc.fontSize(14)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text("Number of Vulnerable Cryptographic Methods", { align: "center" })
-                .moveDown(1);
-
-            doc.fontSize(12)
-                .font("Helvetica")
-                .fillColor("#000")
-                .text(`Number of cases: ${content.vulnerableMethodsCount}`, { align: "left", lineGap: 5 })
-                .moveDown(2);
-
-            // ========== LOCATION OF VULNERABILITIES ==========
-            doc.fontSize(14)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text("Where are the vulnerabilities at?", { align: "center" })
-                .moveDown(1);
-
-            doc.fontSize(12)
-                .font("Helvetica")
-                .fillColor("#000")
-                .text(content.vulnerabilityLocations, { align: "left", lineGap: 5 })
-                .moveDown(2);
-
-            // ========== REPLACEMENT METHODS ==========
-            doc.fontSize(14)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text("Recommendations", { align: "center" })
-                .moveDown(1);
-
-            doc.fontSize(12)
-                .font("Helvetica")
-                .fillColor("#000")
-                .text(content.replacementMethods, { align: "left", lineGap: 5 })
-                .moveDown(2);
-
-            // ========== BACKGROUND CONTEXT ==========
-            doc.fontSize(14)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text("Background", { align: "center" })
-                .moveDown(1);
-
-            doc.fontSize(12)
-                .font("Helvetica")
-                .fillColor("#000")
-                .text(content.backgroundContext, { align: "left", lineGap: 5 })
-                .moveDown(2);
-
-            // ========== CONFIDENTIAL MESSAGE ==========
-            doc.fontSize(12)
-                .font("Helvetica-Bold")
-                .fillColor("#333")
-                .text("Confidential for internal use only", { align: "center" });
-
-            // Finalize the PDF
-            doc.end();
-
-            stream.on("finish", () => {
-                console.log(`PDF saved successfully at: ${outputPath}`);
-                resolve();
-            });
-
-            stream.on("error", (err) => {
-                console.error("Error writing PDF:", err);
-                reject(err);
-            });
-
-        } catch (error) {
-            console.error("Error generating PDF:", error);
-            reject(error);
+            yOffset -= logoDims.height + 20; // Move down after logo
         }
-    });
+
+        // Add title
+        page.drawText(coverDetails.title, {
+            x: width / 2,
+            y: yOffset,
+            size: 20,
+            font,
+            color: rgb(0.2, 0.2, 0.2),
+            maxWidth: width - 2 * margin,
+        });
+        yOffset -= 40;
+
+        // Add sections dynamically
+        const addSection = (title: string, text: string, fontSize = 12) => {
+            page.drawText(title, {
+                x: margin,
+                y: yOffset,
+                size: 14,
+                font,
+                color: rgb(0.2, 0.2, 0.2),
+                maxWidth: width - 2 * margin,
+            });
+            yOffset -= 20;
+
+            page.drawText(text, {
+                x: margin,
+                y: yOffset,
+                size: fontSize,
+                font,
+                color: rgb(0, 0, 0),
+                maxWidth: width - 2 * margin,
+            });
+            yOffset -= (text.split("\n").length + 1) * fontSize + 20;
+        };
+
+        // Add sections to the PDF
+        addSection("Executive Summary", content.executiveSummary);
+        addSection("Number of Vulnerable Cryptographic Methods", `Number of cases: ${content.vulnerableMethodsCount}`);
+        addSection("Where are the vulnerabilities at?", content.vulnerabilityLocations);
+        addSection("Recommendations", content.replacementMethods);
+        addSection("Background", content.backgroundContext);
+
+        // Add footer
+        page.drawText("Confidential for internal use only", {
+            x: width / 2,
+            y: margin,
+            size: 10,
+            font,
+            color: rgb(0.5, 0.5, 0.5),
+        });
+
+        // Serialize the PDF to bytes
+        const pdfBytes = await pdfDoc.save();
+
+        // Trigger download
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        saveAs(blob, "Quantum_Safe_Report.pdf"); // Correct usage of saveAs
+
+        console.log("PDF successfully generated ✅");
+    } catch (error) {
+        console.error("Error generating PDF:", error);
+    }
 }

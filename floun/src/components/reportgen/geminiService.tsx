@@ -1,10 +1,8 @@
 import axios from "axios";
-import * as dotenv from "dotenv";
+import { GOOGLE_GEMINI_API_KEY } from "./key";
 
-// Load environment variables
-dotenv.config();
 
-const API_KEY = process.env.GOOGLE_GEMINI_API_KEY;
+const API_KEY = GOOGLE_GEMINI_API_KEY;
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 /**
