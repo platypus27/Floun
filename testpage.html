@@ -1,19 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Encryption Test Page</title>
-    <!-- Load CryptoJS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Encryption Test Page</title>
+  <!-- Load CryptoJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 </head>
 <body>
-    <h1>Encryption Test Page</h1>
-    <script>
-        // Using CryptoJS to call AES.encrypt as an example
-        const data = "Hello, world!";
-        const key = CryptoJS.enc.Utf8.parse("1234567890123456");
-        const encrypted = CryptoJS.AES.encrypt(data, key, { mode: CryptoJS.mode.ECB });
-        console.log("Encrypted Data:", encrypted.toString());
-    </script>
+  <h1>Encryption Test Page</h1>
+  <script>
+    const data = "Hello, world!";
+    const key = CryptoJS.enc.Utf8.parse("1234567890123456");
+
+    // Safe encryption method: AES encryption
+    const encryptedAES = CryptoJS.AES.encrypt(data, key, { mode: CryptoJS.mode.ECB });
+    console.log("Safe Encryption (AES):", encryptedAES.toString());
+
+    // Vulnerable encryption method: DES encryption
+    const encryptedDES = CryptoJS.DES.encrypt(data, key, { mode: CryptoJS.mode.ECB });
+    console.log("Vulnerable Encryption (DES):", encryptedDES.toString());
+
+    // Vulnerable hash method: MD5 (should not be used for security-sensitive applications)
+    const hashedMD5 = CryptoJS.MD5(data).toString();
+    console.log("Vulnerable Encryption/Hash (MD5):", hashedMD5);
+  </script>
 </body>
 </html>

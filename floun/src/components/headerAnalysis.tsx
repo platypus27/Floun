@@ -1,146 +1,94 @@
 // header information is sent from autoscan getHeaders(), just have to analyse the headers and retrieve
-// this is very not easy
+// this is very NOT easy
 // the cryptographic algorithm is straight up told to you from the header/signature
-// 1. Check TLS Version (TLS 1.3 and Above = Safe)
-// 2. Cipher Suite (RSA/ECDHE = Unsafe) (Hybrid key exchanges such as Kyber + X25519 is safe)
-// 3. Post Quantum Cryptography (PQC) Algorithm (Kyber, Dilithium, SPHINCS+, Falcon = Safe)
-// 4. Certificate Signature Algorithm (Public Key Pins, Strict Transport Security headers = Safe)
 
-import React, { useState, useEffect } from 'react';
+// Experimental Post-Quantum Safe Cipher Suites
+const Safe_PQCipher = [
+"ECDHE_KYBER512_RSA_WITH_AES_256_GCM_SHA384", "ECDHE_KYBER768_ECDSA_WITH_AES_256_GCM_SHA384", // Found from OpenQuantumSafe (liboqs) library
+"ECDHE_SABER_ECDSA_WITH_AES_256_GCM_SHA384", "ECDHE_NTRU_HPS2048509_ECDSA_WITH_AES_256_GCM_SHA384",
+"ECDHE_BIKE1_L1_ECDSA_WITH_CHACHA20_POLY1305_SHA256", "ECDHE_HQC_128_ECDSA_WITH_AES_256_GCM_SHA384",
+"TLS_KYBER512", "TLS_KYBER768", "TLS_KYBER1024" // Not an Official Naming Convention but some websites are using it as a experimental cipher suite
+]; 
 
-interface CipherSuite {
-  id?: number;
-  name?: string;
-}
+export const HeaderSecurityCheck = (headers: any): Record<string, string> | null => {
+  // Final Results Object
+  const Result: Record<string, string> = {};
 
-interface EndpointDetails {
-  tlsVersion?: string;
-  cipherSuites?: CipherSuite[];
-  certSignatureAlgorithm?: string; // Certificate Algorithm
-}
+  // If Certificates is missing or not an array
+  if (!headers || !Array.isArray(headers.endpoints)) {
+    Result["Status"] = "No Certificate found in JSON data.";
+    return Result;
+  }
 
-interface Endpoint {
-  details?: EndpointDetails;
-}
+  // All PQC Safe found across the endpoints
+  const quantumSafeCiphers: string[] = [];
 
-interface SslLabsApiResponse {
-  status: string;
-  endpoints?: Endpoint[];
-}
+  // Track how many endpoints fully support TLS 1.3
+  let endpointsWithTLS13 = 0;
+  const totalEndpoints = headers.endpoints.length;
 
-export const HeaderSecurityCheck: React.FC = () => {
-  const [tlsStatus, setTlsStatus] = useState<string>('Scanning TLS settings...');
+  // Looping through each endpoint
+  for (let i = 0; i < totalEndpoints; i++) {
+    const endpoint = headers.endpoints[i];
+    if (!endpoint.details) continue;
 
-  useEffect(() => {
-    const fetchTLSVersionAndCipher = async (retries = 3) => {
-      try {
-        const response = await fetch(`https://api.ssllabs.com/api/v3/analyze?host=${window.location.hostname}`);
-        
-        if (!response.ok) {
-          if (response.status === 429 && retries > 0) {
-            console.warn("API rate limit hit. Retrying...");
-            setTimeout(() => fetchTLSVersionAndCipher(retries - 1), 5000);
-            return;
-          }
-          throw new Error(`HTTP error! status: ${response.status}`);
+    // Check if the endpoint supports TLS 1.3
+    let hasTLS13 = false;
+    const protocols = endpoint.details.protocols;
+    if (Array.isArray(protocols)) {
+      for (let p = 0; p < protocols.length; p++) {
+        const protoObj = protocols[p];
+        if (protoObj?.version === "1.3") {
+          hasTLS13 = true;
+          break;
         }
+      }
+    }
+    if (hasTLS13) endpointsWithTLS13++;
 
-        const data: SslLabsApiResponse = await response.json();
+    // Look for Experimental PQC Ciper Suites
+    const suitesArray = endpoint.details.suites;
+    if (!Array.isArray(suitesArray)) continue;
 
-        if (data.status !== "READY") {
-          setTlsStatus("Scanning in progress... ⏳");
-          return;
-        }
-
-        let tlsSafe = false;
-        let pqcLikely = false;
-        let strongCert = false;
-        let tlsVersion = "Unknown";
-        let cipherSuites: string[] = [];
-        let certAlgorithm = "Unknown";
-
-        if (data.endpoints?.length) {
-          const endpoint = data.endpoints[0];
-          tlsVersion = endpoint.details?.tlsVersion || "Unknown";
-          certAlgorithm = endpoint.details?.certSignatureAlgorithm || "Unknown";
-          const cipherSuiteObjects = endpoint.details?.cipherSuites || [];
-          cipherSuites = cipherSuiteObjects.map(cs => cs.name || "Unknown");
-
-          tlsSafe = tlsVersion === "TLSv1.3";
-
-          //Known Post-Quantum Safe Cipher Suites
-          const pqcCiphers = [
-            "TLS_KYBER", "TLS_NTRU", "TLS_SABER", "TLS_CLASSIC_MCELIECE",
-            "TLS_BIKE", "TLS_FRODOKEM", "TLS_HQC", "TLS_NTRUPRIME",
-            "TLS_DILITHIUM", "TLS_FALCON", "TLS_SPHINCS+", 
-            "TLS_AES_256_GCM_SHA384", "TLS_CHACHA20_POLY1305_SHA256", 
-            "TLS_AES_128_GCM_SHA256", "TLS_AES_128_CCM_8_SHA256", "TLS_AES_128_CCM_SHA256",
-            "Kyber-based", "NTRU-based", "SABER-based", "Dilithium-based", "Falcon-based", 
-            "SPHINCS+-based", "Hybrid-PQC"
-          ];
-          
-          // Known **Unsafe** Cipher Suites
-          const weakQuantumCiphers = [
-            "TLS_RSA", "TLS_ECDHE_RSA", "TLS_ECDHE_ECDSA", "TLS_DHE_RSA",
-            "TLS_RSA_WITH_AES_256_GCM_SHA384", "TLS_RSA_WITH_AES_128_GCM_SHA256",
-            "TLS_RSA_WITH_AES_256_CBC_SHA256", "TLS_RSA_WITH_AES_128_CBC_SHA256",
-            "TLS_RSA_WITH_AES_256_CBC_SHA", "TLS_RSA_WITH_AES_128_CBC_SHA",
-            "TLS_RSA_WITH_CAMELLIA_256_CBC_SHA", "TLS_RSA_WITH_CAMELLIA_128_CBC_SHA",
-            "TLS_RSA_WITH_3DES_EDE_CBC_SHA",
-            "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
-            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",
-            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA", "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-            "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
-            "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
-            "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA", "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-            "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256",
-            "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
-            "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384", "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
-            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA256", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA256",
-            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA", "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-            "TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA", "TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA",
-            "TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA"
-          ];
-          
-          pqcLikely = cipherSuites.some(cs => pqcCiphers.some(kw => cs.toLowerCase().includes(kw.toLowerCase())));
-          
-          if (cipherSuites.some(cs => weakQuantumCiphers.some(kw => cs.toLowerCase().includes(kw.toLowerCase())))) {
-            pqcLikely = false; // Override if unsafe keywords are found.
-          }
-
-          // ✅ Check for Strong Certificate Algorithms
-          const strongCertAlgorithms = [
-            "ECDSA_P256_SHA256", "ECDSA_P384_SHA384", "ECDSA_P521_SHA512",
-            "Ed25519", "Dilithium", "SPHINCS+"
-          ];
-
-          strongCert = strongCertAlgorithms.includes(certAlgorithm);
-        }
-
-        let statusMessage = `TLS Status: `;
-      if (tlsSafe) {
-        statusMessage += "TLS 1.3 is used. ";
-      } else {
-        statusMessage += "TLS 1.3 is NOT used. ";
+    // Loop through the suites array
+    for (let j = 0; j < suitesArray.length; j++) {
+      const suiteObj = suitesArray[j];
+      if (!suiteObj.list || !Array.isArray(suiteObj.list)) {
+        continue; // skip if no 'list' array
       }
 
-      statusMessage += `Possible Post-Quantum Ciphers: ${pqcLikely ? "Likely" : "Unlikely"}. `;
-      statusMessage += `Strong Certificate Algorithm: ${strongCert ? "Yes" : "No"}.`;
-      statusMessage += ` (TLS: ${tlsVersion}, Ciphers: ${cipherSuites.join(", ")}, Cert: ${certAlgorithm})`;
+      // Loop through each cipher item in suiteObj.list
+      for (let k = 0; k < suiteObj.list.length; k++) {
+        const cipherItem = suiteObj.list[k];
+        if (!cipherItem?.name) continue;
 
-      setTlsStatus(statusMessage);
+        const cipherName = cipherItem.name; // e.g. "ECDHE_KYBER512_RSA_WITH_AES_256_GCM_SHA384"
+        // Check if this cipher is in our known quantum-safe array (case-insensitive)
+        const isQuantumSafe = Safe_PQCipher.some(
+          (pqc) => pqc.toLowerCase() === cipherName.toLowerCase()
+        );
 
-      } catch (error) {
-        console.error("An error occurred:", error);
-        setTlsStatus(error instanceof Error ? `❌ Error: ${error.message}` : "❌ Unknown error occurred");
+        if (isQuantumSafe) {
+          quantumSafeCiphers.push(cipherName);
+        }
       }
-    };
+    }
+  }
 
-    fetchTLSVersionAndCipher().then(() => {
-      console.log(`TLS Security Assessment: ${tlsStatus}`);
-    });
-    
-  }, []);
+  if (quantumSafeCiphers.length > 0) {
+    Result["Signature Algorithm"] = `✅ Found ${quantumSafeCiphers.length} Experimental Quantum-Safe Cipher(s): ` +
+      quantumSafeCiphers.join(", ");
+  } else {
+    Result["Signature Algorithm"] = '❌ No Experimental Quantum-Safe Cipher Suites Found.';
+  }
 
-  return null; // Or return an empty fragment: return <></>;
+  if (endpointsWithTLS13 === totalEndpoints) {
+    Result["TLSVersionCheck"] = `✅ All ${totalEndpoints} endpoint(s) support TLS 1.3.`;
+  } else {
+    Result["TLSVersionCheck"] =
+      `⚠️ ${endpointsWithTLS13}/${totalEndpoints} endpoint(s) support TLS 1.3.`;
+  }
+
+  console.log("HeaderSecurityCheck result:", Result);
+  return Result;
 };

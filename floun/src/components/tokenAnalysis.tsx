@@ -5,17 +5,18 @@
 import FormatTest from './sessiontokenanalysis/formattest';
 import EntropyTest from './sessiontokenanalysis/entropytest';
 import PatternTest from './sessiontokenanalysis/patterntest';
+import FrequencyTest from './sessiontokenanalysis/frequencytest';
 
 export const analyzeTokens = (tokens: any[]): string[] => {
-  const results: string[] = [];
   const vulnerableTokens: string[] = [];
 
   tokens.forEach(token => {
     const formatTestResult = FormatTest({ tokenData: { token: token } });
     const entropyTestResult = EntropyTest({ tokenData: { token: token } });
     const patternTestResult = PatternTest({ tokenData: { token: token } });
+    const frequencyTestResult = FrequencyTest({ tokenData: { token: token } });
 
-    const results = [formatTestResult, entropyTestResult, patternTestResult];
+    const results = [formatTestResult, entropyTestResult, patternTestResult, frequencyTestResult];
 
     const tokenErrors = new Map();
 
@@ -37,7 +38,7 @@ export const analyzeTokens = (tokens: any[]): string[] => {
       vulnerableTokens.push(`Token: ${token}, Messages: ${messages.join('; ')}`);
     }
 
-    // console.log(`Token: ${token}, Entropy Test Passed: ${entropyTestResult.passed}, Entropy Test Message: ${entropyTestResult.message}`);
+    // console.log(`Token: ${token}, Frequency Test Passed: ${frequencyTestResult.passed}, Frequency Test Message: ${frequencyTestResult.message}`);
     // console.log(`Token: ${token}, Format Test Passed: ${formatTestResult.passed}, Format Test Message: ${formatTestResult.message}, Entropy Test Passed: ${entropyTestResult.passed}, Entropy Test Message: ${entropyTestResult.message}, Pattern Test Passed: ${patternTestResult.passed}, Pattern Test Message: ${patternTestResult.message}`);
   });
   return vulnerableTokens;
