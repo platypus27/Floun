@@ -56,4 +56,5 @@ coverage/
 # Ignore public folder contents except manifest.json
 !public/manifest.json
 
+# shodan key
 src/shodankey.tsx
