@@ -22,8 +22,6 @@ export const analyzeCryptoInJavascript = (scripts: any[]): string[] => {
     });
   });
 
-  console.log("scripts", scripts);
-  console.log("vulnerabilities", vulnerabilities);
 
   return vulnerabilities.length > 0
     ? vulnerabilities
