@@ -1,3 +1,4 @@
+import performHeaderSecurityCheck from '../src/components/headerSecurity.js';
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // console.log('Message received in background script:', message);
 
@@ -25,6 +26,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
           // console.log("response_cert", response);
+          // const response2 = await fetch(
+          //   `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`
+          // );
+          // console.log("Test headerSecurityStatus", response2.json());
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }

@@ -21,6 +21,5 @@ export const analyzeCertificate = (certificate: any): Record<string, string> | n
       "Certificate Not Quantum-Safe, Hash Result: " + certificate_algo;
   }
 
-  console.log(analysisResult);
   return analysisResult;
 };
