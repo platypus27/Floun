@@ -10,85 +10,77 @@ const Safe_PQCipher = [
 "TLS_KYBER512", "TLS_KYBER768", "TLS_KYBER1024" // Not an Official Naming Convention but some websites are using it as a experimental cipher suite
 ]; 
 
-export const HeaderSecurityCheck = (headers: any): Record<string, string> | null => {
-  // Final Results Object
-  const Result: Record<string, string> = {};
+// TypeScript Interfaces
+interface Cipher {
+  name: string;
+}
 
-  // If Certificates is missing or not an array
-  if (!headers || !Array.isArray(headers.endpoints)) {
-    Result["Status"] = "No Certificate found in JSON data.";
+interface Suite {
+  list: Cipher[];
+}
+
+interface EndpointDetails {
+  suites: Suite[];
+}
+
+interface Endpoint {
+  details?: EndpointDetails;
+}
+
+interface JsonData {
+  endpoints: Endpoint[];
+}
+
+// Function to Analyze Headers for Quantum-Safe Cipher Suites
+export const HeaderSecurityCheck = (jsonData: JsonData): Record<string, string> => {
+  const Result: Record<string, string> = {};
+  const quantumSafeCiphers: string[] = [];
+  const nonQuantumSafeCiphers: string[] = [];
+
+  // Validate if endpoints exist
+  if (!jsonData?.endpoints || !Array.isArray(jsonData.endpoints)) {
+    Result["Status"] = "❌ No endpoints array found in JSON data.";
     return Result;
   }
 
-  // All PQC Safe found across the endpoints
-  const quantumSafeCiphers: string[] = [];
+  console.log("Valid endpoints found:", jsonData.endpoints.length);
+  console.log("Type of endpoints:", typeof jsonData.endpoints);
+  console.log("Is endpoints an array?", Array.isArray(jsonData.endpoints));
 
-  // Track how many endpoints fully support TLS 1.3
-  let endpointsWithTLS13 = 0;
-  const totalEndpoints = headers.endpoints.length;
 
-  // Looping through each endpoint
-  for (let i = 0; i < totalEndpoints; i++) {
-    const endpoint = headers.endpoints[i];
-    if (!endpoint.details) continue;
+  // Iterate through each endpoint
+  jsonData.endpoints.forEach((endpoint) => {
+    if (!endpoint.details?.suites || !Array.isArray(endpoint.details.suites)) return;
 
-    // Check if the endpoint supports TLS 1.3
-    let hasTLS13 = false;
-    const protocols = endpoint.details.protocols;
-    if (Array.isArray(protocols)) {
-      for (let p = 0; p < protocols.length; p++) {
-        const protoObj = protocols[p];
-        if (protoObj?.version === "1.3") {
-          hasTLS13 = true;
-          break;
+    // Iterate through each suite object
+    endpoint.details.suites.forEach((suiteObj) => {
+      if (!suiteObj.list || !Array.isArray(suiteObj.list)) return;
+
+      // Iterate through each cipher suite
+      suiteObj.list.forEach((cipher) => {
+        if (cipher.name) {
+          // Convert both to lowercase for case-insensitive matching
+          if (Safe_PQCipher.some((pqc) => pqc.toLowerCase() === cipher.name.toLowerCase())) {
+            quantumSafeCiphers.push(cipher.name);
+          } else {
+            nonQuantumSafeCiphers.push(cipher.name);
+          }
         }
-      }
-    }
-    if (hasTLS13) endpointsWithTLS13++;
+      });
+    });
+  });
 
-    // Look for Experimental PQC Ciper Suites
-    const suitesArray = endpoint.details.suites;
-    if (!Array.isArray(suitesArray)) continue;
-
-    // Loop through the suites array
-    for (let j = 0; j < suitesArray.length; j++) {
-      const suiteObj = suitesArray[j];
-      if (!suiteObj.list || !Array.isArray(suiteObj.list)) {
-        continue; // skip if no 'list' array
-      }
-
-      // Loop through each cipher item in suiteObj.list
-      for (let k = 0; k < suiteObj.list.length; k++) {
-        const cipherItem = suiteObj.list[k];
-        if (!cipherItem?.name) continue;
-
-        const cipherName = cipherItem.name; // e.g. "ECDHE_KYBER512_RSA_WITH_AES_256_GCM_SHA384"
-        // Check if this cipher is in our known quantum-safe array (case-insensitive)
-        const isQuantumSafe = Safe_PQCipher.some(
-          (pqc) => pqc.toLowerCase() === cipherName.toLowerCase()
-        );
-
-        if (isQuantumSafe) {
-          quantumSafeCiphers.push(cipherName);
-        }
-      }
-    }
-  }
-
+  // Generate Result Output
   if (quantumSafeCiphers.length > 0) {
-    Result["Signature Algorithm"] = `✅ Found ${quantumSafeCiphers.length} Experimental Quantum-Safe Cipher(s): ` +
-      quantumSafeCiphers.join(", ");
+    Result["Quantum-Safe Cipher Suites"] = `✅ Found ${quantumSafeCiphers.length} quantum-safe ciphers: ${quantumSafeCiphers.join(", ")}`;
   } else {
-    Result["Signature Algorithm"] = '❌ No Experimental Quantum-Safe Cipher Suites Found.';
+    Result["Quantum-Safe Cipher Suites"] = "❌ No quantum-safe cipher suites found.";
   }
 
-  if (endpointsWithTLS13 === totalEndpoints) {
-    Result["TLSVersionCheck"] = `✅ All ${totalEndpoints} endpoint(s) support TLS 1.3.`;
-  } else {
-    Result["TLSVersionCheck"] =
-      `⚠️ ${endpointsWithTLS13}/${totalEndpoints} endpoint(s) support TLS 1.3.`;
+  if (nonQuantumSafeCiphers.length > 0) {
+    Result["Non-Quantum-Safe Cipher Suites"] = `⚠️ Found ${nonQuantumSafeCiphers.length} non-quantum-safe ciphers: ${nonQuantumSafeCiphers.join(", ")}`;
   }
 
-  console.log("HeaderSecurityCheck result:", Result);
+  console.log("HeaderSecurityCheck Result:", Result);
   return Result;
 };
