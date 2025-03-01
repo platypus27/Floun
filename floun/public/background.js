@@ -1,4 +1,3 @@
-import performHeaderSecurityCheck from '../src/components/headerSecurity.js';
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   // console.log('Message received in background script:', message);
 
