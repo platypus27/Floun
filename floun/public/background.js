@@ -19,18 +19,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const domain = url.hostname;
         //const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
         //const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
-        const shodan_url = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
-        console.log("URL", shodan_url );
+        const response = await fetch(`https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`);
 
-        const response = await fetch(shodan_url);
-        console.log("response_TLS", response);
+        // Check if the response is OK (i.e., status code 200)
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
 
         const data = await response.json();
-        console.log("header data", data);
         return data;
 
       } catch (error) {
-        console.error("Error fetching TLS:", error);
+        console.error("Error fetching TLS and Cipher Suite:", error);
         return null; // Handle errors gracefully by returning null
       }
     };
@@ -43,11 +43,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
-          // console.log("response_cert", response);
-          // const response2 = await fetch(
-          //   `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`
-          // );
-          // console.log("Test headerSecurityStatus", response2.json());
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }

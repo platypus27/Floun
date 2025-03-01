@@ -31,7 +31,6 @@ const App: React.FC = () => {
                 const certResults = analyzeCertificate(response.data.certificates);
                 const tokenResults = analyzeTokens(response.data.tokens);
                 console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
-                //console.log("finalresults", jsResults, certResults, tokenResults);
                 setScanData(response.data);
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
