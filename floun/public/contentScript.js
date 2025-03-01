@@ -1,7 +1,7 @@
 // contentScript.js
 console.log("Content script is running!");
 
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'runScans') {
     console.log("Content script: Received 'runScans' message.  Sending to background...");
     const pageOrigin = window.location.origin;

@@ -15,27 +15,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ status: 'error', message: 'Page origin not found' });
       return true;
     }
-    
-    const getTLS = async (url) => {
-      try {
-        const domain = url.hostname;
-        //const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
-        //const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
-        const shodan_url = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
-        console.log("shodan_url", shodan_url );
-
-        const response = await fetch(shodan_url);
-        console.log("response_TLS", response);
-
-        const data = await response.json();
-        console.log("header data", data);
-        return data;
-
-      } catch (error) {
-        console.error("Error fetching TLS:", error);
-        return null; // Handle errors gracefully by returning null
-      }
-    };
 
     // Certificate fetching function
     const getCertificates = async (url) => {
@@ -45,9 +24,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
-          console.log("response_cert", response);
           // console.log("response_cert", response);
-
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
@@ -186,9 +163,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       try {
         const certificates = await getCertificates(message.url_info);
-        const TLS = await getTLS(message.url_info);
-        console.log("TLS", TLS);
-        const combinedResults = { ...scanResults, certificates, TLS };
+        const combinedResults = { ...scanResults, certificates };
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {
