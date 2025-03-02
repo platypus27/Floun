@@ -16,6 +16,7 @@ interface Cipher {
 }
 
 interface Suite {
+  protocol: number; // TLS version ID (e.g., 771 = TLS 1.2, 772 = TLS 1.3)
   list: Cipher[];
 }
 
@@ -40,31 +41,27 @@ interface JsonData {
 
 // Analyze Headers for Quantum-Safe Cipher Suites & TLS 1.3
 export const HeaderSecurityCheck = (jsonData: JsonData): string => {
-  let tlsStatus = "❌ TLS <Unknown> [Vulnerable]"; // Default if TLS is not found
-  let cipherStatus = "❌ CipherSuite [Vulnerable]"; // Default if no quantum-safe cipher suites are found
-
-  // Validate if endpoints exist
   if (!jsonData?.endpoints || !Array.isArray(jsonData.endpoints)) {
     return "❌ No endpoints array found in JSON data.";
   }
 
-  let supportsTLS13 = false;
-  let foundQuantumSafeCipher = false;
+  const results: string[] = [];
 
   // Iterate through each endpoint
   jsonData.endpoints.forEach((endpoint) => {
     if (!endpoint.details) return;
 
-    // Check if TLS 1.3 is supported
+    let tlsVersion = "<Unknown>";
+    let foundQuantumSafeCipher = false;
+    const nonQuantumSafeCiphers: string[] = [];
+
+    // Check the highest TLS version supported
     if (endpoint.details.protocols && Array.isArray(endpoint.details.protocols)) {
-      endpoint.details.protocols.forEach((protocol) => {
-        if (protocol.version === "1.3") {
-          supportsTLS13 = true;
-        }
-      });
+      const tls13Supported = endpoint.details.protocols.some(protocol => protocol.version === "1.3");
+      tlsVersion = tls13Supported ? "1.3" : "<1.2 or Lower>";
     }
 
-    // Check for quantum-safe ciphers
+    // Check for cipher suites
     if (endpoint.details.suites && Array.isArray(endpoint.details.suites)) {
       endpoint.details.suites.forEach((suiteObj) => {
         if (!suiteObj.list || !Array.isArray(suiteObj.list)) return;
@@ -73,20 +70,22 @@ export const HeaderSecurityCheck = (jsonData: JsonData): string => {
           if (cipher.name) {
             if (Safe_PQCipher.some((pqc) => pqc.toLowerCase() === cipher.name.toLowerCase())) {
               foundQuantumSafeCipher = true;
+              results.push(`TLS ${tlsVersion} + ${cipher.name} [Safe] in SSL Header`);
+            } else {
+              nonQuantumSafeCiphers.push(cipher.name);
             }
           }
         });
       });
     }
+
+    // If there are non-quantum-safe ciphers, mark them as vulnerable
+    if (nonQuantumSafeCiphers.length > 0) {
+      nonQuantumSafeCiphers.forEach(cipher => {
+        results.push(`TLS ${tlsVersion} + ${cipher} [Vulnerable] in SSL Header`);
+      });
+    }
   });
 
-  // Assign TLS status ✅ ❌ 
-  tlsStatus = supportsTLS13 ? "TLS 1.3 [Safe]" : "TLS <1.2 or Lower> [Vulnerable]";
-
-  // Assign Cipher Suite status
-  cipherStatus = foundQuantumSafeCipher ? "CipherSuite [Safe]" : "CipherSuite [Vulnerable]";
-
-  // Return formatted output
-  //console.log("HeaderSecurityCheck Result:", ${ tlsStatus }, ${ cipherStatus });
-  return `${tlsStatus}, ${cipherStatus} in SSL Header`;
+  return results.length > 0 ? results.join("\n") : "⚠️ No valid cipher suites found.";
 };
