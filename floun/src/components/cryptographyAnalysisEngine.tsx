@@ -77,3 +77,12 @@ export interface EncryptionPattern {
       safety: 'Vulnerable'
     },
   ];
+
+export const CERTIFICATE_SIGNATURES = {
+  "safe": [
+    "kyber", "NTRU", "FrodoKEM", "McEliece", "SABER", "Dilithium", "Falcon", "Sphincs+", "XMSS", "Rainbow", "SIDH"
+  ],
+  "vulnerable": [
+    "RSA", "DSA", "ECDSA", "Diffie-Hellman", "ElGamal", "SEED", "RC4", "DES", "3DES", "MD5", "SHA-1", "SHA-256", "SHA-512"
+  ]
+}

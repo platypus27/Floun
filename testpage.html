@@ -23,6 +23,45 @@
     // Vulnerable hash method: MD5 (should not be used for security-sensitive applications)
     const hashedMD5 = CryptoJS.MD5(data).toString();
     console.log("Vulnerable Encryption/Hash (MD5):", hashedMD5);
+
+    // Tokens
+    const validTokens = {
+      "JWT": "eyJhbGciOiJIUzI1NiIsImtpZCI6IkhTMjU2LUJlc3Qta2V5IiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoiOTkwNjQxZjAtYjQ2MS00ZjAxLWFhZmItNjFlNmY1YmI0NjYzIiwibmFtZSI6IldXWm0wV1lBdTltM2hXZ3Z1IiwiZW50cm9weSI6IkV4dHJhU3RyUjFfRmx1c0hrNGJvNlBRMFh4cmh4NmpRUmp3OGNpVzJha0IiLCJleHAiOjE4OTM0NTYwMDB9.n2sQLZhHQswQ97AHPxPav0ZBdcO1Snvd3klRPfK8c34",
+      "Hex": "9f6a2d3c8b5e6f47a1c29d0f5b7e8d3a4c6f2b9d7e1a8c3f5d0b2e6a9c8f4d7b",
+      "UUID": "4f68c69b-2d0f-4a91-8f1e-cb7a3d2e5f0c",
+      "Base64": "QW5vZHV0eS1oMXJ5anVkZWFxZ3pyMTJmdnI0NnNxb3c",
+      "Opaque": "v2_5bG9jYWxfcmFuZG9tXzE2eFVhSnZ3T1N5cG5rbQ"
+    };
+
+    const invalidTokens = {
+      "JWT (None Alg)": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoiMTIzNDU2IiwibmFtZSI6IkFsaWNlIiwiZXhwIjoxODkzNDU2MDAwfQ.",
+      "JWT (Low Entropy)": "eyJhbGciOiJIUzI1NiIsImtpZCI6IkxPVy1FbnRyb3B5IiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoiMTIzNDU2NzgiLCJuYW1lIjoiU2ltcGxlTmFtZSIsImV4cCI6MTg5MzQ1NjAwMH0.ZFy_FQvSPpwbOOh5JGJmUNx5MLy9mHt_pjHvQ8XsZ1c",
+      "JWT (Repeating Pattern)": "eyJhbGciOiJIUzI1NiIsImtpZCI6IlJFRkVSRU5DRV8xMjMiLCJ0eXAiOiJKV1QifQ.eyJ1c2VyX2lkIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwiZXhwIjoxODkzNDU2MDAwfQ.XXz5a1pUp7GXX5a1pUp7GXX5a1pUp7GXX5a1pUp7GXX5a1pUp7G",
+      "JWT (Overused Char)": "eyJhbGciOiJIUzI1NiIsImtpZCI6IlRPTy1NQU5ZLUktQ0hBUlMiLCJ0eXAiOiJKV1QifQ.eyJ1c2VyX2lkIjoiSXhJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGEiLCJleHAiOjE4OTM0NTYwMDB9.AAAAAAAx23456789abcdefghiABCDEFGHI123456789abcdefghiABCDEFGHI",
+      "Hex (Low Entropy)": "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef",
+      "UUID (Pattern Detected)": "123e4567-e89b-12d3-a456-426614174000",
+      "Base64 (Overused 'A')": "QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB"
+    };
+
+    // Function to store tokens in localStorage, sessionStorage, and cookies
+    function storeTokens() {
+      // Store valid tokens in localStorage
+      Object.keys(validTokens).forEach(key => {
+        localStorage.setItem(key, validTokens[key]);
+      });
+
+      // Store invalid tokens in sessionStorage
+      Object.keys(invalidTokens).forEach(key => {
+        sessionStorage.setItem(key, invalidTokens[key]);
+      });
+
+      // Store tokens in cookies (expires in 1 day)
+      document.cookie = `validTokens=${btoa(JSON.stringify(validTokens))}; path=/; max-age=86400`;
+      document.cookie = `invalidTokens=${btoa(JSON.stringify(invalidTokens))}; path=/; max-age=86400`;
+    }
+
+    // Run the function to store tokens when the page loads
+    storeTokens();
   </script>
 </body>
 </html>

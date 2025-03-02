@@ -17,7 +17,7 @@ const FrequencyTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
         if (!token || token === "No tokens found") {
             return {
                 passed: false,
-                message: "Frequency analysis test failed: Token is empty.",
+                message: "No tokens found",
             };
         }
 
@@ -45,8 +45,8 @@ const FrequencyTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
         return {
             passed: pass,
             message: pass
-                ? "Frequency analysis test passed: Character distribution appears reasonably uniform."
-                : `Frequency analysis test failed: ${anomalyMessage}`,
+                ? "Character distribution appears reasonably uniform."
+                : `${anomalyMessage}`,
             details: anomalyDetected ? "Frequency Anomaly" : "Uniform Distribution",
             frequencyAnalysis: frequencies, // Return the frequency analysis data
         };

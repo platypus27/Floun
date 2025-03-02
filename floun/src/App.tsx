@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './App.css';
+import { HeaderSecurityCheck } from './components/headerAnalysis';
 import { analyzeCryptoInJavascript } from './components/javascriptanalysis';
+import { analyzeCertificate } from './components/certificateanalysis';
 import { analyzeTokens } from './components/tokenAnalysis';
 import { createReport } from './components/ai-handler'; // Import the createReport function
 

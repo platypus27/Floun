@@ -18,7 +18,7 @@ const PatternTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
         const tokenArray: string[] = Array.isArray(token) ? token : [token];
 
         if (!tokenArray || tokenArray.length === 0 || tokenArray[0] === "No token found") {
-            return { passed: false, message: "No token provided.", details: "Missing" };
+            return { passed: false, message: "No tokens found", details: "Missing" };
         }
 
         // Run checks if multiple tokens are provided
@@ -30,7 +30,15 @@ const PatternTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
         }
 
         // If no patterns are found in multiple tokens, then analyze individual tokens
-        for (const singleToken of tokenArray) {
+        for (let singleToken of tokenArray) {
+            const tokenParts = singleToken.split(".");
+            if (tokenParts.length === 3) {
+                try {
+                    singleToken = atob(tokenParts[1].replace(/_/g, "/").replace(/-/g, "+")); // Decode Base64 safely
+                } catch (error) {
+                    return { passed: false, message: "Failed to decode JWT payload.", details: "Decoding Error" };
+                }
+            }
             const sequentialResult = checkForSequentialPatterns(singleToken);
             if (sequentialResult) return sequentialResult;
 
@@ -65,7 +73,7 @@ const PatternTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
     }
 
     function isSequential(sequence: string): boolean {
-        if (sequence.length < 2) return false;
+        if (sequence.length < 5) return false; // Only flag sequences 5+ characters long
 
         let increasing = true;
         let decreasing = true;

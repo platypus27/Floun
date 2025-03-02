@@ -24,7 +24,7 @@ const EntropyTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
     if (!token || token == "No tokens found") {
       return {
         passed: false,
-        message: "Entropy test failed: Token is empty."
+        message: "No tokens found"
       };
     }
 
@@ -35,8 +35,8 @@ const EntropyTest = ({ tokenData }: { tokenData: TokenData }): TestResult => {
     return {
       passed: pass,
       message: pass
-        ? `Entropy test passed. Actual: ${actualEntropy.toFixed(2)}, Max Possible: ${maxPossibleEntropy.toFixed(2)}`
-        : `Entropy test failed. Actual: ${actualEntropy.toFixed(2)}, Max Possible: ${maxPossibleEntropy.toFixed(2)}`
+        ? `Actual: ${actualEntropy.toFixed(2)}, Max Possible: ${maxPossibleEntropy.toFixed(2)}`
+        : `Actual: ${actualEntropy.toFixed(2)}, Max Possible: ${maxPossibleEntropy.toFixed(2)}`
     };
   };
 

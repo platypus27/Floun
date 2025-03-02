@@ -1,5 +1,4 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  // console.log('Message received in background script:', message);
 
   if (message.action === 'scanWebsite') {
     const tabId = sender.tab?.id;
@@ -10,7 +9,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     const pageOrigin = message.pageOrigin;
-    // console.log("Page origin (background.js, after retrieval):", pageOrigin);
     if (!pageOrigin) {
       sendResponse({ status: 'error', message: 'Page origin not found' });
       return true;
@@ -58,13 +56,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const getTokens = () => {
           return new Promise((resolve, reject) => {
             const tokens = [];
-            const sessionTokenRegex = /^(?:[a-zA-Z0-9+/]{24,}=*|[a-f0-9]{32,}|[a-zA-Z0-9_-]{36,})$/;
+            const sessionTokenRegex = /^(?:[a-f0-9]{32,}|[a-zA-Z0-9_-]{36,}|eyJ[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+$|v\d+_[a-zA-Z0-9]+|Q[A-Za-z0-9+/=]{20,})$/;
         
-            // Scan cookies 
-            const cookies = document.cookie.split(';');
-            cookies.forEach((cookie) => {
+            // Scan cookies
+            document.cookie.split(';').forEach(cookie => {
               const parts = cookie.split('=');
-              const cookieValue = parts[1] ? parts[1].trim() : ''; 
+              const cookieValue = parts[1] ? parts[1].trim() : '';
               if (cookieValue && sessionTokenRegex.test(cookieValue)) {
                 tokens.push(cookieValue);
               }
@@ -90,7 +87,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         
             resolve(tokens.length > 0 ? tokens : ["No tokens found"]);
           });
-        };
+        };        
 
         const getHeaders = () => {
           const headers = {};

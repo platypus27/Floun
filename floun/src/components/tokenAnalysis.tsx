@@ -7,8 +7,8 @@ import EntropyTest from './sessiontokenanalysis/entropytest';
 import PatternTest from './sessiontokenanalysis/patterntest';
 import FrequencyTest from './sessiontokenanalysis/frequencytest';
 
-export const analyzeTokens = (tokens: any[]): string[] => {
-  const vulnerableTokens: string[] = [];
+export const analyzeTokens = (tokens: any[]): { safe: { token: string, results: string[] }[], vulnerable: { token: string, results: string[] }[] } => {
+  const results: { safe: { token: string, results: string[] }[], vulnerable: { token: string, results: string[] }[] } = { safe: [], vulnerable: [] };
 
   tokens.forEach(token => {
     const formatTestResult = FormatTest({ tokenData: { token: token } });
@@ -16,44 +16,51 @@ export const analyzeTokens = (tokens: any[]): string[] => {
     const patternTestResult = PatternTest({ tokenData: { token: token } });
     const frequencyTestResult = FrequencyTest({ tokenData: { token: token } });
 
-    const results = [formatTestResult, entropyTestResult, patternTestResult, frequencyTestResult];
+    const testResults = [
+      `Format Test ${formatTestResult.passed ? "Passed" : "Fail"}: ${formatTestResult.message} ${formatTestResult.vulnerabilities && formatTestResult.vulnerabilities.length > 0 ? `Vulnerablities: ${formatTestResult.vulnerabilities}` : ""}`,
+      `Entropy Test ${entropyTestResult.passed ? "Passed" : "Fail"}: ${entropyTestResult.message}`,
+      `Pattern Test ${patternTestResult.passed ? "Passed" : "Fail"}: ${patternTestResult.message}`,
+      `Frequency Test ${frequencyTestResult.passed ? "Passed" : "Fail"}: ${frequencyTestResult.message}`
+    ];
 
-    const tokenErrors = new Map();
-
-    for (const result of results) {
-      if (!result.passed || (result.vulnerabilities && result.vulnerabilities.length > 0)) {
-        // Get existing errors for this token, or create a new array if none exist
-        const existingErrors = tokenErrors.get(token) || [];
-
-        // Add the new error message to the array
-        existingErrors.push(result.message);
-
-        // Store (or update) the errors for this token in the map
-        tokenErrors.set(token, existingErrors);
-      }
+    if (formatTestResult.passed && entropyTestResult.passed && patternTestResult.passed && frequencyTestResult.passed) {
+      results.safe.push({ token, results: testResults }); // Push to safe if all tests pass
+      console.log(`Found token ${token} is safe`);
+    } else {
+      results.vulnerable.push({ token, results: testResults }); // Push to vulnerable if any test fails
+      console.log(`Found token ${token} is vulnerable`);
     }
-
-    // Iterate over the map and format the output for each token with multiple error messages
-    for (const [token, messages] of tokenErrors) {
-      vulnerableTokens.push(`Token: ${token}, Messages: ${messages.join('; ')}`);
-    }
-
-    // console.log(`Token: ${token}, Frequency Test Passed: ${frequencyTestResult.passed}, Frequency Test Message: ${frequencyTestResult.message}`);
-    // console.log(`Token: ${token}, Format Test Passed: ${formatTestResult.passed}, Format Test Message: ${formatTestResult.message}, Entropy Test Passed: ${entropyTestResult.passed}, Entropy Test Message: ${entropyTestResult.message}, Pattern Test Passed: ${patternTestResult.passed}, Pattern Test Message: ${patternTestResult.message}`);
   });
-  return vulnerableTokens;
+  console.log(results);
+  return results;
 };
 
+
 // Example Usage (for testing)
-// const validJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'; // Example valid JWT
-// const invalidJwt = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
-// const opaqueToken = 'this_is_a_long_opaque_token_string_1234567890abcdef';
-// const shortOpaqueToken = 'shorttoken';
-// const emptyToken = '';
-// const sequentialToken = "abcdefghijklmnop"; // Sequential Token
-// const repetitiveToken = "abababababababab"; // Repetitive Token
-// const longSequentialToken = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"; // long sequential
-// const similarTokens = ["abcdefghijklmnop", "abcdefghijklmn12345", "abcdefghijklmn67890"]; //similar tokens
-// const testTokens = [validJwt, invalidJwt, opaqueToken, shortOpaqueToken, emptyToken, sequentialToken, repetitiveToken, longSequentialToken, similarTokens];
+// ✅ Valid
+const validJWT = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkhTMjU2LUJlc3Qta2V5IiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoiOTkwNjQxZjAtYjQ2MS00ZjAxLWFhZmItNjFlNmY1YmI0NjYzIiwibmFtZSI6IldXWm0wV1lBdTltM2hXZ3Z1IiwiZW50cm9weSI6IkV4dHJhU3RyUjFfRmx1c0hrNGJvNlBRMFh4cmh4NmpRUmp3OGNpVzJha0IiLCJleHAiOjE4OTM0NTYwMDB9.n2sQLZhHQswQ97AHPxPav0ZBdcO1Snvd3klRPfK8c34";
+const HexToken = "9f6a2d3c8b5e6f47a1c29d0f5b7e8d3a4c6f2b9d7e1a8c3f5d0b2e6a9c8f4d7b";
+const UuidToken = "4f68c69b-2d0f-4a91-8f1e-cb7a3d2e5f0c";
+const Base64Token = "QW5vZHV0eS1oMXJ5anVkZWFxZ3pyMTJmdnI0NnNxb3c";
+const OpaqueToken = "v2_5bG9jYWxfcmFuZG9tXzE2eFVhSnZ3T1N5cG5rbQ";
+
+// ❌ Invalid JWT #1 - Fails Format (None Algorithm)
+const invalidJWT1 = "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoiMTIzNDU2IiwibmFtZSI6IkFsaWNlIiwiZXhwIjoxODkzNDU2MDAwfQ.";
+
+// ❌ Invalid JWT #2 - Fails Entropy (Too Predictable)
+const invalidJWT2 = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkxPVy1FbnRyb3B5IiwidHlwIjoiSldUIn0.eyJ1c2VyX2lkIjoiMTIzNDU2NzgiLCJuYW1lIjoiU2ltcGxlTmFtZSIsImV4cCI6MTg5MzQ1NjAwMH0.ZFy_FQvSPpwbOOh5JGJmUNx5MLy9mHt_pjHvQ8XsZ1c";
+
+// ❌ Invalid JWT #3 - Fails Pattern (Repeating Characters)
+const invalidJWT3 = "eyJhbGciOiJIUzI1NiIsImtpZCI6IlJFRkVSRU5DRV8xMjMiLCJ0eXAiOiJKV1QifQ.eyJ1c2VyX2lkIjoiQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBIiwiZXhwIjoxODkzNDU2MDAwfQ.XXz5a1pUp7GXX5a1pUp7GXX5a1pUp7GXX5a1pUp7GXX5a1pUp7G";
+
+// ❌ Invalid JWT #4 - Fails Frequency (Character Overuse)
+const invalidJWT4 = "eyJhbGciOiJIUzI1NiIsImtpZCI6IlRPTy1NQU5ZLUktQ0hBUlMiLCJ0eXAiOiJKV1QifQ.eyJ1c2VyX2lkIjoiSXhJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGFJSGEiLCJleHAiOjE4OTM0NTYwMDB9.AAAAAAAx23456789abcdefghiABCDEFGHI123456789abcdefghiABCDEFGHI";
+
+const invalidHexToken = "abcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef";
+const invalidUuidToken = "123e4567-e89b-12d3-a456-426614174000";
+const invalidBase64Token = "QUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFB";
+
+
+const testTokens = [validJWT, HexToken, UuidToken, Base64Token, OpaqueToken, invalidJWT1, invalidJWT2, invalidJWT3, invalidJWT4, invalidHexToken, invalidUuidToken, invalidBase64Token];
 
 // analyzeTokens(testTokens);
