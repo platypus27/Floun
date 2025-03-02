@@ -13,6 +13,11 @@ function sanitizeContent(text: string): string {
         .replace(/\r?\n|\r/g, " "); // Remove unnecessary line breaks
 }
 
+// Function to count vulnerable methods
+function countVulnerableMethods(results: string[]): number {
+    return results.filter(result => result.includes("[Vulnerable]")).length;
+}
+
 const coverDetails = {
     title: "Quantum Safe Cryptography Report",
     logoBase64: logoBase64 // Use the imported base64 string
@@ -22,30 +27,36 @@ export async function createReport(jsResults: string[], tokenResults: string[]) 
     console.log("Generating AI report...");
 
     try {
+        // Count the number of vulnerable cryptographic methods from jsResults and tokenResults
+        const jsVulnerableCount = countVulnerableMethods(jsResults);
+        const tokenVulnerableCount = countVulnerableMethods(tokenResults);
+        const totalVulnerableCount = jsVulnerableCount + tokenVulnerableCount;
+
+        // Generate a formatted string for the vulnerable methods count
+        const vulnerableMethodsBreakdown = `Number of cases: ${totalVulnerableCount} (JS: ${jsVulnerableCount}, Tokens: ${tokenVulnerableCount})`;
+
         // Combine jsResults and tokenResults into a single array
-        const results = [...jsResults, ...tokenResults];
+        const allResults = [...jsResults, ...tokenResults];
 
         // Generate AI content for each section
         const executiveSummary = await generateChatMessage(
-            `Write a concise executive summary (max 150 words) on quantum-safe cryptography based on the following findings:\n${results.join("\n")}`
-        );
-        const vulnerableMethodsCount = await generateChatMessage(
-            `Summarize the number of vulnerable cryptographic methods found in 2-3 sentences based on the following findings:\n${results.join("\n")}`
+            `Write a concise executive summary (max 150 words) on quantum-safe cryptography based on the following findings:\n${allResults.join("\n")}`
         );
         const vulnerabilityLocations = await generateChatMessage(
-            `Summarize where the vulnerabilities are located in 2-3 sentences based on the following findings:\n${results.join("\n")}`
+            `Summarize where the vulnerabilities are located in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
         );
         const replacementMethods = await generateChatMessage(
-            `Suggest cryptographic methods to replace the vulnerable ones in 2-3 sentences based on the following findings:\n${results.join("\n")}`
+            `Suggest quantum safe cryptographic methods to replace the vulnerable ones in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
         );
         const backgroundContext = await generateChatMessage(
-            `Provide some background context about quantum-safe cryptography in 2-3 sentences based on the following findings:\n${results.join("\n")}`
+            `Provide some background context about quantum-safe cryptography in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
         );
 
         // Sanitize the AI-generated content
         const reportContent = {
             executiveSummary: sanitizeContent(executiveSummary),
-            vulnerableMethodsCount: parseInt(vulnerableMethodsCount, 10) || 0,
+            vulnerableMethodsCount: totalVulnerableCount, // Keep this as a number
+            vulnerableMethodsBreakdown: vulnerableMethodsBreakdown, // Add this for the formatted string
             vulnerabilityLocations: sanitizeContent(vulnerabilityLocations),
             replacementMethods: sanitizeContent(replacementMethods),
             backgroundContext: sanitizeContent(backgroundContext)
