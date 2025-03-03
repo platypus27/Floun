@@ -19,21 +19,42 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const domain = url.hostname;
         //const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
         //const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
-        const response = await fetch(`https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`);
+        const apiUrl = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
+        console.log(`Starting SSL scan for: ${domain}`);
 
-        // Check if the response is OK (i.e., status code 200)
+        let data;
+        let attempts = 0;
+        const maxAttempts = 15;
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); // Helper function to wait
+
+        while (attempts < maxAttempts) {
+          const response = await fetch(apiUrl);
+
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
 
-        const data = await response.json();
-        return data;
+        data = await response.json();
 
-      } catch (error) {
-        console.error("Error fetching TLS and Cipher Suite:", error);
-        return null; // Handle errors gracefully by returning null
+        // Check if the scan is complete
+        if (data.status === "READY") {
+          console.log(`Scan completed for: ${domain}`);
+          return data;
+        }
+
+        console.log(`Scan in progress... (Attempt ${attempts + 1})`);
+        attempts++;
+        await delay(5000); // Wait 5 seconds before polling again
       }
-    };
+
+      console.warn(`Timeout reached: SSL scan did not complete for ${domain}`);
+      return null; // Return null if scan takes too long
+
+    } catch (error) {
+      console.error("Error fetching TLS and Cipher Suite:", error);
+      return null; // Handle errors gracefully
+    }
+  };
 
     // Certificate fetching function
     const getCertificates = async (url) => {
