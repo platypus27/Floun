@@ -27,11 +27,10 @@ const App: React.FC = () => {
                   console.log("No JavaScript found to analyze.");
                   jsResults = []; // Leave the results empty
                 }
-                // const headerResults = HeaderSecurityCheck(response.data.headers);
+                const headerResults = HeaderSecurityCheck(response.data.TLS);
                 const certResults = analyzeCertificate(response.data.certificates);
                 const tokenResults = analyzeTokens(response.data.tokens);
-                // console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
-                console.log("finalresults", jsResults, certResults, tokenResults);
+                console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
                 setScanData(response.data);
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
