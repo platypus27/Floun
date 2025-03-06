@@ -7,8 +7,8 @@ import EntropyTest from './sessiontokenanalysis/entropytest';
 import PatternTest from './sessiontokenanalysis/patterntest';
 import FrequencyTest from './sessiontokenanalysis/frequencytest';
 
-export const analyzeTokens = (tokens: any[]): { safe: { token: string, results: string[] }[], vulnerable: { token: string, results: string[] }[] } => {
-  const results: { safe: { token: string, results: string[] }[], vulnerable: { token: string, results: string[] }[] } = { safe: [], vulnerable: [] };
+export const analyzeTokens = (tokens: any[]): string[] => {
+  const results: string[] = [];
 
   tokens.forEach(token => {
     const formatTestResult = FormatTest({ tokenData: { token: token } });
@@ -16,19 +16,10 @@ export const analyzeTokens = (tokens: any[]): { safe: { token: string, results: 
     const patternTestResult = PatternTest({ tokenData: { token: token } });
     const frequencyTestResult = FrequencyTest({ tokenData: { token: token } });
 
-    const testResults = [
-      `Format Test ${formatTestResult.passed ? "Passed" : "Fail"}: ${formatTestResult.message} ${formatTestResult.vulnerabilities && formatTestResult.vulnerabilities.length > 0 ? `Vulnerablities: ${formatTestResult.vulnerabilities}` : ""}`,
-      `Entropy Test ${entropyTestResult.passed ? "Passed" : "Fail"}: ${entropyTestResult.message}`,
-      `Pattern Test ${patternTestResult.passed ? "Passed" : "Fail"}: ${patternTestResult.message}`,
-      `Frequency Test ${frequencyTestResult.passed ? "Passed" : "Fail"}: ${frequencyTestResult.message}`
-    ];
-
     if (formatTestResult.passed && entropyTestResult.passed && patternTestResult.passed && frequencyTestResult.passed) {
-      results.safe.push({ token, results: testResults }); // Push to safe if all tests pass
-      console.log(`Found token ${token} is safe`);
+      results.push(`Found token ${token} [Safe] in Tokens`); // Push to safe if all tests pass
     } else {
-      results.vulnerable.push({ token, results: testResults }); // Push to vulnerable if any test fails
-      console.log(`Found token ${token} is vulnerable`);
+      results.push(`Found token ${token} [Vulnerable] in Tokens`); // Push to vulnerable if any test fails
     }
   });
   console.log(results);

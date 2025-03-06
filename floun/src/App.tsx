@@ -31,8 +31,23 @@ const App: React.FC = () => {
                   console.log("No JavaScript found to analyze.");
                   jsResultsLocal = []; // Leave the results empty
                 }
-                const headerResults = HeaderSecurityCheck(response.data.TLS);
-                const certResults = analyzeCertificate(response.data.certificates);
+
+                let headerResults;
+                if (response.data.TLS) {
+                  headerResults = HeaderSecurityCheck(response.data.TLS);
+                } else {
+                  console.log("No TLS found to analyze.");
+                  headerResults = "No cryptographic encryption methods found in the header"; // Leave the results empty
+                }
+
+                let certResults;
+                if (response.data.certificates) {
+                  certResults = analyzeCertificate(response.data.certificates);
+                } else {
+                  console.log("No Certificates found to analyze.");
+                  certResults = "No cryptographic encryption methods found in the certificate"; // Leave the results empty
+                }
+                
                 const tokenResults = analyzeTokens(response.data.tokens);
                 console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
                 setScanData(response.data);
