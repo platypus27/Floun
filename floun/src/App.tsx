@@ -52,6 +52,9 @@ const App: React.FC = () => {
                 const tokenResultsLocal = analyzeTokens(response.data.tokens);
                 setTokenResults(tokenResultsLocal || []);
 
+                // Display Final Results
+                console.log('Final Results: ', { jsResultsLocal, tokenResultsLocal, headerResultsLocal, certResultsLocal });
+
                 // Store parsed data
                 setScanData(response.data);
               } catch (error) {
@@ -99,6 +102,10 @@ const App: React.FC = () => {
           <pre>{JSON.stringify(jsResults, null, 2)}</pre>
           <p>Token Results:</p>
           <pre>{JSON.stringify(tokenResults, null, 2)}</pre>
+          <p>Header Results:</p>
+          <pre>{JSON.stringify(headerResults, null, 2)}</pre>
+          <p>Certificate Results:</p>
+          <pre>{JSON.stringify(certResults, null, 2)}</pre>
         </div>
       )}
     </div>
