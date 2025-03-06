@@ -10,6 +10,8 @@ const App: React.FC = () => {
   const [scanData, setScanData] = useState<any>(null); // Store parsed data
   const [jsResults, setJsResults] = useState<string[]>([]); // Store JavaScript analysis results
   const [tokenResults, setTokenResults] = useState<string[]>([]); // Store token analysis results
+  const [headerResults, setHeaderResults] = useState<string[]>([]);
+  const [certResults, setCertResults] = useState<string[]>([]);
 
   const handleScan = async () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -69,7 +71,7 @@ const App: React.FC = () => {
 
   const handleGenerateReport = async () => {
     // Call the createReport function with jsResults and tokenResults
-    await createReport(jsResults, tokenResults);
+    await createReport(jsResults, tokenResults, headerResults, certResults);
   };
 
   return (

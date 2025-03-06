@@ -23,20 +23,22 @@ const coverDetails = {
     logoBase64: logoBase64 // Use the imported base64 string
 };
 
-export async function createReport(jsResults: string[], tokenResults: string[]) {
+export async function createReport(jsResults: string[], tokenResults: string[], headerResults: string[], certResults: string[]) {
     console.log("Generating AI report...");
 
     try {
         // Count the number of vulnerable cryptographic methods from jsResults and tokenResults
         const jsVulnerableCount = countVulnerableMethods(jsResults);
         const tokenVulnerableCount = countVulnerableMethods(tokenResults);
-        const totalVulnerableCount = jsVulnerableCount + tokenVulnerableCount;
+        const headerVulnerableCount = countVulnerableMethods(headerResults);
+        const certVulnerableCount = countVulnerableMethods(certResults);
+        const totalVulnerableCount = jsVulnerableCount + tokenVulnerableCount + headerVulnerableCount + certVulnerableCount;
 
         // Generate a formatted string for the vulnerable methods count
-        const vulnerableMethodsBreakdown = `Number of cases: ${totalVulnerableCount} (JS: ${jsVulnerableCount}, Tokens: ${tokenVulnerableCount})`;
+        const vulnerableMethodsBreakdown = `Number of cases: ${totalVulnerableCount} (JS: ${jsVulnerableCount}, Tokens: ${tokenVulnerableCount}, Headers: ${headerVulnerableCount}, Certificates: ${certVulnerableCount})`;
 
-        // Combine jsResults and tokenResults into a single array
-        const allResults = [...jsResults, ...tokenResults];
+        // Combine all results into a single array
+        const allResults = [...jsResults, ...tokenResults, ...headerResults, ...certResults];
 
         // Generate AI content for each section
         const executiveSummary = await generateChatMessage(
