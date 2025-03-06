@@ -40,6 +40,8 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         // Combine all results into a single array
         const allResults = [...jsResults, ...tokenResults, ...headerResults, ...certResults];
 
+        console.log('allResults is: ', allResults);
+
         // Generate AI content for each section
         const executiveSummary = await generateChatMessage(
             `Write a concise executive summary (max 150 words) on quantum-safe cryptography based on the following findings:\n${allResults.join("\n")}`

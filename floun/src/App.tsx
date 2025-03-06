@@ -1,3 +1,4 @@
+/// <reference types="chrome"/>
 import React, { useState } from 'react';
 import './App.css';
 import { HeaderSecurityCheck } from './components/headerAnalysis';
@@ -29,29 +30,29 @@ const App: React.FC = () => {
                 let jsResultsLocal: string[] = [];
                 if (response.data.jsScripts) {
                   jsResultsLocal = analyzeCryptoInJavascript(response.data.jsScripts);
-                } else {
-                  console.log("No JavaScript found to analyze.");
-                  jsResultsLocal = []; // Leave the results empty
                 }
+                setJsResults(jsResultsLocal || []); // Ensure default value is an empty array
 
-                let headerResults;
+                // Analyze Headers
+                let headerResultsLocal: string[] = [];
                 if (response.data.TLS) {
-                  headerResults = HeaderSecurityCheck(response.data.TLS);
-                } else {
-                  console.log("No TLS found to analyze.");
-                  headerResults = "No cryptographic encryption methods found in the header"; // Leave the results empty
+                  headerResultsLocal = [HeaderSecurityCheck(response.data.TLS)];
                 }
+                setHeaderResults(headerResultsLocal || []);
 
-                let certResults;
+                // Analyze Certificates
+                let certResultsLocal: string[] = [];
                 if (response.data.certificates) {
-                  certResults = analyzeCertificate(response.data.certificates);
-                } else {
-                  console.log("No Certificates found to analyze.");
-                  certResults = "No cryptographic encryption methods found in the certificate"; // Leave the results empty
+                  const certAnalysisResult = analyzeCertificate(response.data.certificates);
+                  certResultsLocal = Array.isArray(certAnalysisResult) ? certAnalysisResult : [];
                 }
-                
-                const tokenResults = analyzeTokens(response.data.tokens);
-                console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
+                setCertResults(certResultsLocal || []);
+
+                // Analyze Tokens
+                const tokenResultsLocal = analyzeTokens(response.data.tokens);
+                setTokenResults(tokenResultsLocal || []);
+
+                // Store parsed data
                 setScanData(response.data);
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
