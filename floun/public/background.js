@@ -14,6 +14,48 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
+    const getTLS = async (url) => {
+      try {
+        const domain = url.hostname;
+        //const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
+        //const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
+        const apiUrl = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
+        console.log(`Starting SSL scan for: ${domain}`);
+
+        let data;
+        let attempts = 0;
+        const maxAttempts = 15;
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)); // Helper function to wait
+
+        while (attempts < maxAttempts) {
+          const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        data = await response.json();
+
+        // Check if the scan is complete
+        if (data.status === "READY") {
+          console.log(`Scan completed for: ${domain}`);
+          return data;
+        }
+
+        console.log(`Scan in progress... (Attempt ${attempts + 1})`);
+        attempts++;
+        await delay(5000); // Wait 5 seconds before polling again
+      }
+
+      console.warn(`Timeout reached: SSL scan did not complete for ${domain}`);
+      return null; // Return null if scan takes too long
+
+    } catch (error) {
+      console.error("Error fetching TLS and Cipher Suite:", error);
+      return null; // Handle errors gracefully
+    }
+  };
+
     // Certificate fetching function
     const getCertificates = async (url) => {
       try {
@@ -22,11 +64,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
-          // console.log("response_cert", response);
-          // const response2 = await fetch(
-          //   `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`
-          // );
-          // console.log("Test headerSecurityStatus", response2.json());
           if (!response.ok) {
             throw new Error(`HTTP error! Status: ${response.status}`);
           }
@@ -163,8 +200,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       let scanResults = injectionResults[0]?.result || {};
 
       try {
+        const TLS = await getTLS(message.url_info);
         const certificates = await getCertificates(message.url_info);
-        const combinedResults = { ...scanResults, certificates };
+        const combinedResults = { ...scanResults, certificates, TLS };
         console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {

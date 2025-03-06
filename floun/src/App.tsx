@@ -31,18 +31,10 @@ const App: React.FC = () => {
                   console.log("No JavaScript found to analyze.");
                   jsResultsLocal = []; // Leave the results empty
                 }
-
-                // Analyze tokens
-                const tokenResultsLocal = analyzeTokens(response.data.tokens);
-
-                // Update state with results
-                setJsResults(jsResultsLocal);
-                setTokenResults(tokenResultsLocal);
-
-                // Log results for debugging
-                console.log("JavaScript Results:", jsResultsLocal);
-                console.log("Token Results:", tokenResultsLocal);
-
+                const headerResults = HeaderSecurityCheck(response.data.TLS);
+                const certResults = analyzeCertificate(response.data.certificates);
+                const tokenResults = analyzeTokens(response.data.tokens);
+                console.log("finalresults", { headerResults, jsResults, certResults, tokenResults });
                 setScanData(response.data);
               } catch (error) {
                 setScanData({ error: 'Error parsing JSON' });
