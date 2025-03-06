@@ -31,7 +31,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const response = await fetch(apiUrl);
 
         if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
+          // throw new Error(`HTTP error! Status: ${response.status}`);
+          return false;
         }
 
         data = await response.json();
@@ -47,12 +48,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         await delay(5000); // Wait 5 seconds before polling again
       }
 
-      console.warn(`Timeout reached: SSL scan did not complete for ${domain}`);
-      return null; // Return null if scan takes too long
+      // console.warn(`Timeout reached: SSL scan did not complete for ${domain}`);
+      return false; // Return null if scan takes too long
 
     } catch (error) {
-      console.error("Error fetching TLS and Cipher Suite:", error);
-      return null; // Handle errors gracefully
+      // console.error("Error fetching TLS and Cipher Suite:", error);
+      return false; // Handle errors gracefully
     }
   };
 
@@ -65,23 +66,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             `https://ssl-checker.io/api/v1/check/${domain}`
           );
           if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            // throw new Error(`HTTP error! Status: ${response.status}`);
+            return false;
           }
     
           const data = await response.json();
     
           if (data.length === 0) {
-            throw new Error("No certificate found for this domain.");
+            // throw new Error("No certificate found for this domain.");
+            return false;
           }
     
           return data; // Return the JSON data directly
         } else {
-          console.error("No certificate found for this domain. (http)");
+          // console.error("No certificate found for this domain. (http)");
           return false;
         }
       } catch (error) {
-        console.error("Error fetching certificates:", error);
-        return null; // Handle errors gracefully by returning null
+        // console.error("Error fetching certificates:", error);
+        return false; // Handle errors gracefully by returning null
       }
     };
 

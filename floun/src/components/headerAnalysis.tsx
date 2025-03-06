@@ -82,7 +82,7 @@ export const HeaderSecurityCheck = (jsonData: JsonData): string => {
     // If there are non-quantum-safe ciphers, mark them as vulnerable
     if (nonQuantumSafeCiphers.length > 0) {
       nonQuantumSafeCiphers.forEach(cipher => {
-        results.push(`TLS ${tlsVersion} + ${cipher} [Vulnerable] in SSL Header`);
+        results.push(`Found TLS ${tlsVersion} + ${cipher} [Vulnerable] in SSL Header`);
       });
     }
   });
