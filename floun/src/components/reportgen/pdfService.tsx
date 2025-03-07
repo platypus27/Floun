@@ -135,7 +135,7 @@ export async function generatePDFReport(
         const blob = new Blob([pdfBytes], { type: "application/pdf" });
         saveAs(blob, "Quantum_Safe_Report.pdf");
 
-        console.log("PDF successfully generated ✅");
+        // console.log("PDF successfully generated ✅");
     } catch (error) {
         console.error("Error generating PDF:", error);
     }

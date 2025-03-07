@@ -14,15 +14,12 @@
 
     // Safe encryption method: AES encryption
     const encryptedAES = CryptoJS.AES.encrypt(data, key, { mode: CryptoJS.mode.ECB });
-    console.log("Safe Encryption (AES):", encryptedAES.toString());
 
     // Vulnerable encryption method: DES encryption
     const encryptedDES = CryptoJS.DES.encrypt(data, key, { mode: CryptoJS.mode.ECB });
-    console.log("Vulnerable Encryption (DES):", encryptedDES.toString());
 
     // Vulnerable hash method: MD5 (should not be used for security-sensitive applications)
     const hashedMD5 = CryptoJS.MD5(data).toString();
-    console.log("Vulnerable Encryption/Hash (MD5):", hashedMD5);
 
     // Tokens
     const validTokens = {

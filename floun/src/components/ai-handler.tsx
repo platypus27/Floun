@@ -24,7 +24,7 @@ const coverDetails = {
 };
 
 export async function createReport(jsResults: string[], tokenResults: string[], headerResults: string[], certResults: string[]) {
-    console.log("Generating AI report...");
+    // console.log("Generating AI report...");
 
     try {
         // Count the number of vulnerable cryptographic methods from jsResults and tokenResults
@@ -40,7 +40,7 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         // Combine all results into a single array
         const allResults = [...jsResults, ...tokenResults, ...headerResults, ...certResults];
 
-        console.log('allResults is: ', allResults.join("\n"));
+        // console.log('allResults is: ', allResults.join("\n"));
 
         // Generate AI content for each section
         const executiveSummary = await generateChatMessage(
@@ -69,7 +69,7 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         // Generate the PDF report
         await generatePDFReport(coverDetails, reportContent);
 
-        console.log("Report successfully generated ✅");
+        // console.log("Report successfully generated ✅");
     } catch (error) {
         console.error("Error during report generation:", error);
     }

@@ -18,7 +18,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         const domain = url.hostname;
         const apiUrl = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
-        console.log(`Starting SSL scan for: ${domain}`);
+        // console.log(`Starting SSL scan for: ${domain}`);
 
         let data;
         let attempts = 0;
@@ -37,11 +37,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
         // Check if the scan is complete
         if (data.status === "READY") {
-          console.log(`Scan completed for: ${domain}`);
+          // console.log(`Scan completed for: ${domain}`);
           return data;
         }
 
-        console.log(`Scan in progress... (Attempt ${attempts + 1})`);
+        // console.log(`Scan in progress... (Attempt ${attempts + 1})`);
         attempts++;
         await delay(5000); // Wait 5 seconds before polling again
       }
@@ -204,7 +204,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const TLS = await getTLS(message.url_info);
         const certificates = await getCertificates(message.url_info);
         const combinedResults = { ...scanResults, certificates, TLS };
-        console.log('Final combined results:', combinedResults);
+        // console.log('Final combined results:', combinedResults);
         sendResponse({ status: 'success', data: combinedResults });
       } catch (error) {
         sendResponse({ status: 'error', message: error.message });

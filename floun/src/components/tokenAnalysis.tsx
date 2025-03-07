@@ -22,7 +22,7 @@ export const analyzeTokens = (tokens: any[]): string[] => {
       results.push(`Found token ${token} [Vulnerable] in Tokens`); // Push to vulnerable if any test fails
     }
   });
-  console.log(results);
+  // console.log(results);
   return results;
 };
 
