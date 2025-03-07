@@ -20,12 +20,13 @@ function countVulnerableMethods(results: string[]): number {
 
 const coverDetails = {
     title: "Quantum Safe Cryptography Report",
-    logoBase64: logoBase64 // Use the imported base64 string
+    subtitle: "Identifying and Mitigating Cryptographic Vulnerabilities",
+    logoBase64: logoBase64, // Use the imported base64 string
+    date: new Date().toLocaleDateString(),
+    confidentialityNotice: "Confidential – For Internal Use Only"
 };
 
 export async function createReport(jsResults: string[], tokenResults: string[], headerResults: string[], certResults: string[]) {
-    // console.log("Generating AI report...");
-
     try {
         // Count the number of vulnerable cryptographic methods from jsResults and tokenResults
         const jsVulnerableCount = countVulnerableMethods(jsResults);
@@ -34,13 +35,8 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         const certVulnerableCount = countVulnerableMethods(certResults);
         const totalVulnerableCount = jsVulnerableCount + tokenVulnerableCount + headerVulnerableCount + certVulnerableCount;
 
-        // Generate a formatted string for the vulnerable methods count
-        const vulnerableMethodsBreakdown = `Number of cases: ${totalVulnerableCount} (JS: ${jsVulnerableCount}, Tokens: ${tokenVulnerableCount}, Headers: ${headerVulnerableCount}, Certificates: ${certVulnerableCount})`;
-
         // Combine all results into a single array
         const allResults = [...jsResults, ...tokenResults, ...headerResults, ...certResults];
-
-        // console.log('allResults is: ', allResults.join("\n"));
 
         // Generate AI content for each section
         const executiveSummary = await generateChatMessage(
@@ -55,21 +51,29 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         const backgroundContext = await generateChatMessage(
             `Provide some background context about quantum-safe cryptography in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
         );
+        const riskAssessment = await generateChatMessage(
+            `Assess the risk of the identified vulnerabilities in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
+        );
+        const recommendations = await generateChatMessage(
+            `Provide short-term and long-term recommendations for mitigating the identified vulnerabilities in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
+        );
 
         // Sanitize the AI-generated content
         const reportContent = {
             executiveSummary: sanitizeContent(executiveSummary),
-            vulnerableMethodsCount: totalVulnerableCount, // Keep this as a number
-            vulnerableMethodsBreakdown: vulnerableMethodsBreakdown, // Add this for the formatted string
             vulnerabilityLocations: sanitizeContent(vulnerabilityLocations),
             replacementMethods: sanitizeContent(replacementMethods),
-            backgroundContext: sanitizeContent(backgroundContext)
+            backgroundContext: sanitizeContent(backgroundContext),
+            riskAssessment: sanitizeContent(riskAssessment),
+            recommendations: sanitizeContent(recommendations),
+            vulnerableMethodsCount: totalVulnerableCount,
+            vulnerableMethodsBreakdown: `JS: ${jsVulnerableCount}, Tokens: ${tokenVulnerableCount}, Headers: ${headerVulnerableCount}, Certificates: ${certVulnerableCount}`
         };
 
         // Generate the PDF report
         await generatePDFReport(coverDetails, reportContent);
 
-        // console.log("Report successfully generated ✅");
+        console.log("Report successfully generated ✅");
     } catch (error) {
         console.error("Error during report generation:", error);
     }
