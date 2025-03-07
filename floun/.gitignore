@@ -58,3 +58,5 @@ coverage/
 
 # shodan key
 src/shodankey.tsx
+
+src/components/reportgen/key.tsx

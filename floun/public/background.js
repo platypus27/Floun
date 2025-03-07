@@ -17,8 +17,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const getTLS = async (url) => {
       try {
         const domain = url.hostname;
-        //const shodan_api_key = '8zfmhEoYS3iTEnK0VXepcL3D0GZbfoF6';
-        //const shodan_url = `https://api.shodan.io/shodan/host/search?key=${shodan_api_key}&query=hostname:${domain}&facets=ssl.cipher.name`;
         const apiUrl = `https://api.ssllabs.com/api/v3/analyze?host=${domain}&all=done`;
         console.log(`Starting SSL scan for: ${domain}`);
 
