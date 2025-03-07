@@ -40,9 +40,9 @@ interface JsonData {
 }
 
 // Analyze Headers for Quantum-Safe Cipher Suites & TLS 1.3
-export const HeaderSecurityCheck = (jsonData: JsonData): string => {
+export const HeaderSecurityCheck = (jsonData: JsonData): string[] => {
   if (!jsonData?.endpoints || !Array.isArray(jsonData.endpoints)) {
-    return "❌ No endpoints array found in JSON data.";
+    return ["❌ No endpoints array found in JSON data."];
   }
 
   const results: string[] = [];
@@ -87,5 +87,9 @@ export const HeaderSecurityCheck = (jsonData: JsonData): string => {
     }
   });
 
-  return results.length > 0 ? results.join("\n") : "⚠️ No valid cipher suites found.";
+  if (results.length > 0) {
+    return results
+  } else {
+    return ["⚠️ No valid cipher suites found."]
+  }
 };

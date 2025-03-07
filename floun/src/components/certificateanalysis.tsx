@@ -4,12 +4,12 @@
 
 import { CERTIFICATE_SIGNATURES } from './cryptographyAnalysisEngine';
 
-export const analyzeCertificate = (certificate: any): string | null => {
+export const analyzeCertificate = (certificate: any): string[] | null => {
   const certificate_algo = certificate["result"]["cert_alg"];
 
   if (CERTIFICATE_SIGNATURES['safe'].includes(certificate_algo)) {
-    return `Found ${certificate_algo} [Safe] in certificate`
+    return [`Found ${certificate_algo} [Safe] in certificate`]
   } else {
-    return `Found ${certificate_algo} [Vulnerable] in certificate`
+    return [`Found ${certificate_algo} [Vulnerable] in certificate`]
   }
 };

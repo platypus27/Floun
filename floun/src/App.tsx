@@ -7,12 +7,41 @@ import { analyzeCertificate } from './components/certificateanalysis';
 import { analyzeTokens } from './components/tokenAnalysis';
 import { createReport } from './components/ai-handler'; // Import the createReport function
 
+interface AnalysisSummary {
+  total: number;
+  safe: number;
+  vulnerable: number;
+  vulnerableDetails: string[];
+}
+
 const App: React.FC = () => {
-  const [scanData, setScanData] = useState<any>(null); // Store parsed data
-  const [jsResults, setJsResults] = useState<string[]>([]); // Store JavaScript analysis results
-  const [tokenResults, setTokenResults] = useState<string[]>([]); // Store token analysis results
+  const [scanData, setScanData] = useState<any>(null);
+  const [jsResults, setJsResults] = useState<string[]>([]);
+  const [tokenResults, setTokenResults] = useState<string[]>([]);
   const [headerResults, setHeaderResults] = useState<string[]>([]);
   const [certResults, setCertResults] = useState<string[]>([]);
+
+  const [jsSummary, setJsSummary] = useState<AnalysisSummary>({ total: 0, safe: 0, vulnerable: 0, vulnerableDetails: [] });
+  const [tokenSummary, setTokenSummary] = useState<AnalysisSummary>({ total: 0, safe: 0, vulnerable: 0, vulnerableDetails: [] });
+  const [headerSummary, setHeaderSummary] = useState<AnalysisSummary>({ total: 0, safe: 0, vulnerable: 0, vulnerableDetails: [] });
+  const [certSummary, setCertSummary] = useState<AnalysisSummary>({ total: 0, safe: 0, vulnerable: 0, vulnerableDetails: [] });
+
+
+  const analyzeResults = (results: string[]): AnalysisSummary => {
+    console.log(results)
+    const total = results.length;
+    const vulnerableDetails = results.filter(result => result.toLowerCase().includes("vulnerable") || result.toLowerCase().includes("insecure"));
+    const vulnerable = vulnerableDetails.length;
+    const safe = total - vulnerable;
+
+    return {
+      total,
+      safe,
+      vulnerable,
+      vulnerableDetails
+    };
+  };
+
 
   const handleScan = async () => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -31,14 +60,18 @@ const App: React.FC = () => {
                 if (response.data.jsScripts) {
                   jsResultsLocal = analyzeCryptoInJavascript(response.data.jsScripts);
                 }
-                setJsResults(jsResultsLocal || []); // Ensure default value is an empty array
+                setJsResults(jsResultsLocal || []);
+                const jsSum = analyzeResults(jsResultsLocal || []);
+                setJsSummary(jsSum);
 
                 // Analyze Headers
                 let headerResultsLocal: string[] = [];
                 if (response.data.TLS) {
-                  headerResultsLocal = [HeaderSecurityCheck(response.data.TLS)];
+                  headerResultsLocal = HeaderSecurityCheck(response.data.TLS);
                 }
                 setHeaderResults(headerResultsLocal || []);
+                const headerSum = analyzeResults(headerResultsLocal || []);
+                setHeaderSummary(headerSum);
 
                 // Analyze Certificates
                 let certResultsLocal: string[] = [];
@@ -47,10 +80,14 @@ const App: React.FC = () => {
                   certResultsLocal = Array.isArray(certAnalysisResult) ? certAnalysisResult : [];
                 }
                 setCertResults(certResultsLocal || []);
+                const certSum = analyzeResults(certResultsLocal || []);
+                setCertSummary(certSum);
 
                 // Analyze Tokens
                 const tokenResultsLocal = analyzeTokens(response.data.tokens);
                 setTokenResults(tokenResultsLocal || []);
+                const tokenSum = analyzeResults(tokenResultsLocal || []);
+                setTokenSummary(tokenSum);
 
                 // Display Final Results
                 console.log('Final Results: ', { jsResultsLocal, tokenResultsLocal, headerResultsLocal, certResultsLocal });
@@ -78,6 +115,27 @@ const App: React.FC = () => {
     await createReport(jsResults, tokenResults, headerResults, certResults);
   };
 
+  const displayAnalysisSummary = (summary: AnalysisSummary, title: string) => {
+    return (
+      <div>
+        <p>{title} Results:</p>
+        <p>Total found: {summary.total}</p>
+        <p>Safe: {summary.safe}</p>
+        <p>Vulnerable: {summary.vulnerable}</p>
+        {summary.vulnerable > 0 && (
+          <div>
+            <p>Vulnerable Details:</p>
+            <ul>
+              {summary.vulnerableDetails.map((detail, index) => (
+                <li key={index}>{detail}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="app">
       <div className="header">
@@ -98,14 +156,10 @@ const App: React.FC = () => {
       )}
       {scanData && !scanData.error && (
         <div id="results">
-          <p>JavaScript Results:</p>
-          <pre>{JSON.stringify(jsResults, null, 2)}</pre>
-          <p>Token Results:</p>
-          <pre>{JSON.stringify(tokenResults, null, 2)}</pre>
-          <p>Header Results:</p>
-          <pre>{JSON.stringify(headerResults, null, 2)}</pre>
-          <p>Certificate Results:</p>
-          <pre>{JSON.stringify(certResults, null, 2)}</pre>
+          {displayAnalysisSummary(jsSummary, "JavaScript")}
+          {displayAnalysisSummary(tokenSummary, "Token")}
+          {displayAnalysisSummary(headerSummary, "Header")}
+          {displayAnalysisSummary(certSummary, "Certificate")}
         </div>
       )}
     </div>

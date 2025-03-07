@@ -7,36 +7,67 @@
 
 html {
   font-family: 'Fibra', sans-serif !important;
+  box-sizing: border-box;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-  'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-  sans-serif;
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin: 0px;
-  width: 18rem;
+  margin: 0;
+  padding: 0;
+  width: 22rem; /* Increased width of the popup - adjust as needed */
+  background-color: #fff;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1rem;
 }
 
 .header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
+  align-items: center;
+  margin-bottom: 0; /* Remove spacing below the header */
+  width: 100%;
 }
 
-
-img {
-  max-width:7rem;
+.header img {
+  max-width: 4.5rem;
+  height: auto;
+  margin-right: 0.5rem;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  padding: 0;
 }
 
-button {
-  margin: 1.2rem;
-  padding: 0.2rem 1rem;
+#rightHeader {
+  display: flex;
+  justify-content: flex-end; /* Adjust alignment */
+  width: 100%;
+  margin-bottom: 0; /* Remove spacing below button */
+  padding-right: 1rem; /* add spacing right side*/
+  gap: 0.5rem; /* Add gap between buttons */
+
+}
+
+#scanBtn,
+#generateReportBtn {
+  padding: 0.6rem 1.2rem;
   background-color: #016972;
   color: white;
   cursor: pointer;
@@ -44,9 +75,14 @@ button {
   border-radius: 0.7rem;
   border: #016972;
   border-style: solid;
+  font-size: 1rem;
+  width: auto;
+  white-space: nowrap;
+  margin: 0;
 }
 
-button:hover {
+#scanBtn:hover,
+#generateReportBtn:hover {
   background-color: white;
   color: #016972;
 }
@@ -55,12 +91,44 @@ button:hover {
   color: #016972;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  margin: 1rem;
+  justify-content: flex-start;
+  align-items: stretch;
+  margin: 0rem;
   padding: 1rem;
   border-width: 0.2rem;
   border-radius: 0.7rem;
   border: #016972;
   border-style: solid;
+  width: 100%;
+  word-break: break-word;
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  margin-top: 1rem;
+}
+
+/* Style the section titles (JavaScript Results, Token Results, etc.) */
+#results > p:nth-of-type(odd) {  /* Target every other <p> tag */
+  font-size: 1rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+
+/* Style the preformatted result blocks */
+#results > pre {
+  background-color: #f9f9f9;
+  padding: 0.5rem;
+  border-radius: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Style the paragraph tags */
+#results > p:nth-of-type(even) {
+  margin-bottom: 0.5rem; /* reduced */
+}
+
+/* If you want to highlight vulnerabilities, you'll need to add a class to the HTML*/
+#results .vulnerable {
+  color: red; /* highlight vulnerable data */
 }
