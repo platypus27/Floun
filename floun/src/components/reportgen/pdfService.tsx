@@ -3,12 +3,14 @@ import { saveAs } from "file-saver";
 import { logoBase64 } from "./logoBase64"; // adjust the path as needed
 
 interface ReportContent {
+  introduction: string; 
   executiveSummary: string;
-  vulnerabilityLocations: string;
-  replacementMethods: string;
-  backgroundContext: string;
+  vulnerabilityAnalysis: string;
   riskAssessment: string;
   recommendations: string;
+  nextStep: string;
+  conclusion: string;
+  appendix: string;
   vulnerableMethodsCount: number;
   vulnerableMethodsBreakdown: string;
 }
@@ -18,7 +20,6 @@ interface CoverDetails {
   subtitle: string;
   logoBase64?: string;
   date: string;
-  confidentialityNotice: string;
 }
 
 /**
@@ -80,13 +81,6 @@ export async function generatePDFReport(
       font: font,
       color: rgb(0, 0, 0),
     });
-    page.drawText(coverDetails.confidentialityNotice, {
-      x: 50,
-      y: page.getHeight() - 290,
-      size: 12,
-      font: font,
-      color: rgb(0, 0, 0),
-    });
 
     page.drawText("Table of Contents", {
       x: 50,
@@ -98,14 +92,12 @@ export async function generatePDFReport(
     const toc = [
       "1. Introduction",
       "2. Executive Summary",
-      "3. Methodology",
-      "4. Vulnerability Analysis",
-      "5. Risk Assessment",
-      "6. Recommendations",
-      "7. Case Studies",
-      "8. Next Steps",
-      "9. Conclusion",
-      "10. Appendices",
+      "3. Vulnerability Analysis",
+      "4. Risk Assessment",
+      "5. Recommendations",
+      "6. Next Steps",
+      "7. Conclusion",
+      "8. Appendices",
     ];
     toc.forEach((item, index) => {
       page.drawText(item, {
@@ -125,16 +117,7 @@ export async function generatePDFReport(
       font: boldFont,
       color: rgb(0, 0, 0),
     });
-    const introductionText = `
-      Purpose:
-      - "This report identifies cryptographic vulnerabilities in the system and provides recommendations for transitioning to quantum-safe cryptography."
-
-      Scope:
-      - "The analysis focuses on SSL/TLS configurations, certificates, and JavaScript codebase."
-
-      Audience:
-      - "This report is intended for IT administrators, cybersecurity teams, and decision-makers."
-    `;
+    const introductionText = content.introduction;
     drawWrappedText(introductionPage, introductionText, 50, introductionPage.getHeight() - 80, 500, 12, font);
 
     const executiveSummaryPage = pdfDoc.addPage([600, 800]);
@@ -147,26 +130,6 @@ export async function generatePDFReport(
     });
     drawWrappedText(executiveSummaryPage, content.executiveSummary, 50, executiveSummaryPage.getHeight() - 80, 500, 12, font);
 
-    const methodologyPage = pdfDoc.addPage([600, 800]);
-    methodologyPage.drawText("3. Methodology", {
-      x: 50,
-      y: methodologyPage.getHeight() - 50,
-      size: 18,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    });
-    const methodologyText = `
-      Tools Used:
-      - "Floun browser extension, SSL Labs API, OpenSSL."
-
-      Process:
-      - "We scanned the system for cryptographic vulnerabilities, analyzed SSL/TLS configurations, and reviewed JavaScript code for encryption practices."
-
-      Limitations:
-      - "The analysis did not include network-level vulnerabilities or hardware-based encryption."
-    `;
-    drawWrappedText(methodologyPage, methodologyText, 50, methodologyPage.getHeight() - 80, 500, 12, font);
-
     const vulnerabilityPage = pdfDoc.addPage([600, 800]);
     vulnerabilityPage.drawText("4. Vulnerability Analysis", {
       x: 50,
@@ -175,16 +138,7 @@ export async function generatePDFReport(
       font: boldFont,
       color: rgb(0, 0, 0),
     });
-    const vulnerabilityText = `
-      SSL/TLS Vulnerabilities:
-      - "AES-CBC is used in 300 instances, 3DES in 200 instances, and ecdsa-with-SHA256 in 13 instances."
-
-      JavaScript Vulnerabilities:
-      - "No encryption was found in the JavaScript codebase, which could expose sensitive data to client-side attacks."
-
-      Certificate Vulnerabilities:
-      - "The ecdsa-with-SHA256 certificate is vulnerable to quantum attacks and should be replaced with a quantum-safe alternative."
-    `;
+    const vulnerabilityText = content.vulnerabilityAnalysis;
     drawWrappedText(vulnerabilityPage, vulnerabilityText, 50, vulnerabilityPage.getHeight() - 80, 500, 12, font);
 
     const riskAssessmentPage = pdfDoc.addPage([600, 800]);
@@ -207,23 +161,6 @@ export async function generatePDFReport(
     });
     drawWrappedText(recommendationsPage, content.recommendations, 50, recommendationsPage.getHeight() - 80, 500, 12, font);
 
-    const caseStudiesPage = pdfDoc.addPage([600, 800]);
-    caseStudiesPage.drawText("7. Case Studies", {
-      x: 50,
-      y: caseStudiesPage.getHeight() - 50,
-      size: 18,
-      font: boldFont,
-      color: rgb(0, 0, 0),
-    });
-    const caseStudiesText = `
-      Real-World Examples:
-      - "Google has implemented post-quantum cryptography in Chrome to protect against future quantum threats."
-
-      Lessons Learned:
-      - "Early adoption of quantum-safe cryptography can reduce the risk of future data breaches."
-    `;
-    drawWrappedText(caseStudiesPage, caseStudiesText, 50, caseStudiesPage.getHeight() - 80, 500, 12, font);
-
     const nextStepsPage = pdfDoc.addPage([600, 800]);
     nextStepsPage.drawText("8. Next Steps", {
       x: 50,
@@ -232,16 +169,7 @@ export async function generatePDFReport(
       font: boldFont,
       color: rgb(0, 0, 0),
     });
-    const nextStepsText = `
-      Immediate Actions:
-      - "Review the report findings with the cybersecurity team. Begin implementing the recommended changes."
-
-      Long-Term Goals:
-      - "Regularly update cryptographic protocols and conduct annual security audits."
-
-      Stakeholder Involvement:
-      - "IT administrators will be responsible for updating server configurations, while the cybersecurity team will oversee the transition to quantum-safe certificates."
-    `;
+    const nextStepsText = content.nextStep;
     drawWrappedText(nextStepsPage, nextStepsText, 50, nextStepsPage.getHeight() - 80, 500, 12, font);
 
     const conclusionPage = pdfDoc.addPage([600, 800]);
@@ -252,16 +180,7 @@ export async function generatePDFReport(
       font: boldFont,
       color: rgb(0, 0, 0),
     });
-    const conclusionText = `
-      Summary of Findings:
-      - "The analysis identified 513 cryptographic vulnerabilities, primarily in the SSL/TLS configuration and certificates."
-
-      Call to Action:
-      - "Immediate action is required to mitigate these risks and ensure long-term security."
-
-      Final Thoughts:
-      - "By adopting quantum-safe cryptography now, we can future-proof our systems and protect against emerging threats."
-    `;
+    const conclusionText = content.conclusion;
     drawWrappedText(conclusionPage, conclusionText, 50, conclusionPage.getHeight() - 80, 500, 12, font);
 
     const appendicesPage = pdfDoc.addPage([600, 800]);
@@ -272,16 +191,7 @@ export async function generatePDFReport(
       font: boldFont,
       color: rgb(0, 0, 0),
     });
-    const appendicesText = `
-      Glossary:
-      - "AES-CBC: A block cipher mode that is vulnerable to certain attacks."
-
-      References:
-      - "NIST Post-Quantum Cryptography Project, SSL Labs API documentation."
-
-      Additional Resources:
-      - "OpenSSL documentation, Kyber implementation guide."
-    `;
+    const appendicesText = content.appendix;
     drawWrappedText(appendicesPage, appendicesText, 50, appendicesPage.getHeight() - 80, 500, 12, font);
 
     const pdfBytes = await pdfDoc.save();

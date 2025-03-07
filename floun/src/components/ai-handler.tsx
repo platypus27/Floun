@@ -39,33 +39,42 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         const allResults = [...jsResults, ...tokenResults, ...headerResults, ...certResults];
 
         // Generate AI content for each section
+        const introduction = await generateChatMessage(
+            'Write in paragraphs an introduction highlighting the purpose, scope and audience of quantum cryptography report for web security.'
+        );
         const executiveSummary = await generateChatMessage(
-            `Write a concise executive summary (max 150 words) on quantum-safe cryptography based on the following findings:\n${allResults.join("\n")}`
+            `Write in paragraphs an concise executive summary on quantum-safe cryptography based on the following findings. Do not output the tokens, hashes or certificates directly and no special characters, punctuations are allowed:\n${allResults.join("\n")}`
         );
-        const vulnerabilityLocations = await generateChatMessage(
-            `Summarize where the vulnerabilities are located in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
-        );
-        const replacementMethods = await generateChatMessage(
-            `Suggest quantum safe cryptographic methods to replace the vulnerable ones in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
-        );
-        const backgroundContext = await generateChatMessage(
-            `Provide some background context about quantum-safe cryptography in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
+        const vulnerabilityAnalysis = await generateChatMessage(
+            `Write in paragraphs an analysis of the quantum cryptographic vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed: \n${allResults.join("\n")}`
         );
         const riskAssessment = await generateChatMessage(
-            `Assess the risk of the identified vulnerabilities in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
+            `Write in paragraphs a risk assessment based on the quantum cryptographic vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
         );
         const recommendations = await generateChatMessage(
-            `Provide short-term and long-term recommendations for mitigating the identified vulnerabilities in 2-3 sentences based on the following findings:\n${allResults.join("\n")}`
+            `Write in paragraphs providing short-term and long-term recommendations for mitigating the identified vulnerabilities based on the following findings Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+        );
+        const nextStep = await generateChatMessage(
+            `Write in paragraphs the next steps for implementing quantum-safe cryptography based on the quantum vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+        );
+        const conclusion = await generateChatMessage(
+            `Write in paragraphs a conclusion summarizing the key findings and recommendations for quantum-safe cryptography based on the vulnerabilities found Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
         );
 
         // Sanitize the AI-generated content
         const reportContent = {
+            introduction: sanitizeContent(introduction),
             executiveSummary: sanitizeContent(executiveSummary),
-            vulnerabilityLocations: sanitizeContent(vulnerabilityLocations),
-            replacementMethods: sanitizeContent(replacementMethods),
-            backgroundContext: sanitizeContent(backgroundContext),
+            vulnerabilityAnalysis: sanitizeContent(vulnerabilityAnalysis),
             riskAssessment: sanitizeContent(riskAssessment),
             recommendations: sanitizeContent(recommendations),
+            nextStep: sanitizeContent(nextStep),
+            conclusion: sanitizeContent(conclusion),
+            appendix: `
+                        Javascript Results: \n${jsResults.join("\n")}\n
+                        Token Results: \n${tokenResults.join("\n")}\n
+                        Header Results: \n${headerResults.join("\n")}\n
+                        Certificate Results: \n${certResults.join("\n")}\n`,
             vulnerableMethodsCount: totalVulnerableCount,
             vulnerableMethodsBreakdown: `JS: ${jsVulnerableCount}, Tokens: ${tokenVulnerableCount}, Headers: ${headerVulnerableCount}, Certificates: ${certVulnerableCount}`
         };
