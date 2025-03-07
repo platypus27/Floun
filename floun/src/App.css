@@ -1,73 +1,38 @@
-@font-face {
-  font-family: 'Fibra';
-  src: url("font/fibra.otf") format("opentype");
-  font-weight: bold;
-  font-style: normal;
+/* Loading animation: make the icon “swim” */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
 }
 
-html {
-  font-family: 'Fibra', sans-serif !important;
-  box-sizing: border-box;
+.swimming-icon {
+  width: 8rem; /* adjust size as needed */
+  animation: swim 4s infinite ease;
 }
 
-*,
-*:before,
-*:after {
-  box-sizing: inherit;
+@keyframes swim {
+  0%   { transform: translateX(0) translateY(0) rotate(0deg); }
+  25%  { transform: translateX(10px) translateY(-10px) rotate(10deg); }
+  50%  { transform: translateX(0) translateY(-20px) rotate(0deg); }
+  75%  { transform: translateX(-10px) translateY(-10px) rotate(-10deg); }
+  100% { transform: translateX(0) translateY(0) rotate(0deg); }
 }
 
+/* Base global styles */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  margin: 0;
-  padding: 0;
-  width: 22rem; /* Increased width of the popup - adjust as needed */
-  background-color: #fff;
+  margin: 0px;
+  width: 18rem;
 }
 
-.app {
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 1rem;
-}
-
-.header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  margin-bottom: 0; /* Remove spacing below the header */
-  width: 100%;
-}
-
-.header img {
-  max-width: 4.5rem;
-  height: auto;
-  margin-right: 0.5rem;
-}
-
-.header h1 {
-  font-size: 1.5rem;
-  margin: 0;
-  padding: 0;
-}
-
-#rightHeader {
-  display: flex;
-  justify-content: flex-end; /* Adjust alignment */
-  width: 100%;
-  margin-bottom: 0; /* Remove spacing below button */
-  padding-right: 1rem; /* add spacing right side*/
-  gap: 0.5rem; /* Add gap between buttons */
-
-}
-
-#scanBtn,
-#generateReportBtn {
-  padding: 0.6rem 1.2rem;
+button {
+  margin: 1.2rem;
+  padding: 0.2rem 1rem;
   background-color: #016972;
   color: white;
   cursor: pointer;
@@ -75,60 +40,108 @@ body {
   border-radius: 0.7rem;
   border: #016972;
   border-style: solid;
-  font-size: 1rem;
-  width: auto;
-  white-space: nowrap;
-  margin: 0;
 }
 
-#scanBtn:hover,
-#generateReportBtn:hover {
-  background-color: white;
-  color: #016972;
+button:hover {
+  background-color: #016972;
 }
 
-#results {
-  color: #016972;
+img {
+  max-width: 7rem;
+}
+
+.header {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  margin: 0rem;
-  padding: 1rem;
-  border-width: 0.2rem;
-  border-radius: 0.7rem;
-  border: #016972;
-  border-style: solid;
-  width: 100%;
-  word-break: break-word;
-  white-space: pre-wrap;
-  font-size: 0.85rem;
-  line-height: 1.4;
+  justify-content: space-between;
+}
+
+/* Dashboard styles */
+.dashboard {
+  margin: 1rem;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.total-occurrences {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #016972;
+  /* Initial border settings */
+  border: 0;
+  border-radius: 50%;
+  position: relative;
+  height: 70px;
+  width: 70px;
+}
+
+.results-dropdown {
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+}
+
+.results-dropdown summary {
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.results-content {
   margin-top: 1rem;
 }
 
-/* Style the section titles (JavaScript Results, Token Results, etc.) */
-#results > p:nth-of-type(odd) {  /* Target every other <p> tag */
+.analysis-section {
+  margin-bottom: 1rem;
+}
+
+.analysis-section .section-title {
   font-size: 1rem;
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-/* Style the preformatted result blocks */
-#results > pre {
-  background-color: #f9f9f9;
-  padding: 0.5rem;
-  border-radius: 0.3rem;
+  font-weight: 1000;
   margin-bottom: 0.5rem;
 }
 
-/* Style the paragraph tags */
-#results > p:nth-of-type(even) {
-  margin-bottom: 0.5rem; /* reduced */
+.generateReportBtn {
+  float: right;
 }
 
-/* If you want to highlight vulnerabilities, you'll need to add a class to the HTML*/
-#results .vulnerable {
-  color: red; /* highlight vulnerable data */
+/* Total Occurrences - Animation for loaded state */
+
+/* Both pseudo-elements are circles */
+.total-occurrences::before,
+.total-occurrences::after {
+  box-sizing: inherit;
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* Initial state (invisible borders) */
+.total-occurrences::before {
+  border: 4px solid transparent;
+  transition: border-color 1.5s ease-out; /* Increased duration */
+}
+
+.total-occurrences::after {
+  border: 4px solid transparent;
+  transform: rotate(0deg);
+  transition: transform 1.5s ease-out, border-color 1.5s ease-out; /* Increased duration */
+}
+
+.total-occurrences.loaded::after {
+  /* Set the same border on three sides and rotate */
+  border-top-color: #016972;
+  border-left-color: #016972;
+  border-right-color: #016972;
+  border-bottom-color: #016972;
+  transition: border-top-color 0.15s linear, border-right-color 0.15s linear 0.10s, border-bottom-color 0.15s linear 0.20s, border-left-color 0.15s linear 0.30s;
 }
