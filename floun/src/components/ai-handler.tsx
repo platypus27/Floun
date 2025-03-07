@@ -40,7 +40,7 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
         // Combine all results into a single array
         const allResults = [...jsResults, ...tokenResults, ...headerResults, ...certResults];
 
-        console.log('allResults is: ', allResults);
+        console.log('allResults is: ', allResults.join("\n"));
 
         // Generate AI content for each section
         const executiveSummary = await generateChatMessage(
