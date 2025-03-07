@@ -27,7 +27,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   margin: 0px;
-  width: 18rem;
+  width: 40rem;
 }
 
 button {
@@ -40,6 +40,7 @@ button {
   border-radius: 0.7rem;
   border: #016972;
   border-style: solid;
+  float: right;
 }
 
 button:hover {
@@ -50,9 +51,21 @@ img {
   max-width: 7rem;
 }
 
+details {
+  margin-bottom: 1rem;
+}
+
 .header {
   display: flex;
   justify-content: space-between;
+}
+
+html {
+  color: #016972;
+}
+
+ul {
+  text-wrap: wrap;
 }
 
 /* Dashboard styles */
@@ -84,7 +97,7 @@ img {
 
 .results-dropdown {
   background-color: #fff;
-  border: 1px solid #ccc;
+  border: 2px solid #016972;
   border-radius: 0.5rem;
   padding: 0.5rem;
 }
@@ -95,7 +108,8 @@ img {
 }
 
 .results-content {
-  margin-top: 1rem;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .analysis-section {
@@ -107,12 +121,6 @@ img {
   font-weight: 1000;
   margin-bottom: 0.5rem;
 }
-
-.generateReportBtn {
-  float: right;
-}
-
-/* Total Occurrences - Animation for loaded state */
 
 /* Both pseudo-elements are circles */
 .total-occurrences::before,
@@ -143,5 +151,18 @@ img {
   border-left-color: #016972;
   border-right-color: #016972;
   border-bottom-color: #016972;
-  transition: border-top-color 0.15s linear, border-right-color 0.15s linear 0.10s, border-bottom-color 0.15s linear 0.20s, border-left-color 0.15s linear 0.30s;
+  transition: border-top-color 0.15s ease-out, border-right-color 0.15s ease-out 0.15s, border-bottom-color 0.15s linear 0.3s, border-left-color 0.15s linear 0.45s;
 }
+
+body::-webkit-scrollbar {
+  width: 3px;
+  }
+  
+  body::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  }
+  
+  body::-webkit-scrollbar-thumb {
+  outline: 3px solid #016972;
+  background-color: #016972;
+  }

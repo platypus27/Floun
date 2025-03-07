@@ -51,7 +51,6 @@ const App: React.FC = () => {
   const [resultsLoaded, setResultsLoaded] = useState(false);
 
   const analyzeResults = (results: string[]): AnalysisSummary => {
-    console.log(results);
     const total = results.length;
     const vulnerableDetails = results.filter(result =>
       result.toLowerCase().includes("vulnerable") ||
@@ -77,7 +76,6 @@ const App: React.FC = () => {
             response => {
               if (response && response.status === 'success') {
                 try {
-                  console.log('response data', response.data);
                   // Analyze JavaScript
                   let jsResultsLocal: string[] = [];
                   if (response.data.jsScripts) {
@@ -144,14 +142,11 @@ const App: React.FC = () => {
 
   // Dashboard component that renders the scan dashboard
   const Dashboard: React.FC = () => {
-    // Compute total occurrences
     const totalOccurrences = jsSummary.total + tokenSummary.total + headerSummary.total + certSummary.total;
-    // Local state to manage the loaded animation class
     const [animateLoaded, setAnimateLoaded] = useState(false);
 
     useEffect(() => {
       if (resultsLoaded) {
-        // Delay adding the 'loaded' class so the element renders in its initial state first
         const timer = setTimeout(() => {
           setAnimateLoaded(true);
         }, 100);
@@ -162,18 +157,33 @@ const App: React.FC = () => {
     return (
       <div className="dashboard">
         <div className="dashboard-header">
-          <h2>Scan Dashboard</h2>
+          <h2>Occurrences</h2>
           <div className={`total-occurrences ${animateLoaded ? 'loaded' : ''}`}>
             {totalOccurrences}
           </div>
         </div>
         <details className="results-dropdown">
-          <summary>View Detailed Results</summary>
+          <summary>JavaScript Results</summary>
           <div className="results-content">
-            <div>{displayAnalysisSummary(jsSummary, "JavaScript")}</div>
-            <div>{displayAnalysisSummary(tokenSummary, "Token")}</div>
-            <div>{displayAnalysisSummary(headerSummary, "Header")}</div>
-            <div>{displayAnalysisSummary(certSummary, "Certificate")}</div>
+            {displayAnalysisSummary(jsSummary, "JavaScript")}
+          </div>
+        </details>
+        <details className="results-dropdown">
+          <summary>Token Results</summary>
+          <div className="results-content">
+            {displayAnalysisSummary(tokenSummary, "Token")}
+          </div>
+        </details>
+        <details className="results-dropdown">
+          <summary>Header Results</summary>
+          <div className="results-content">
+            {displayAnalysisSummary(headerSummary, "Header")}
+          </div>
+        </details>
+        <details className="results-dropdown">
+          <summary>Certificate Results</summary>
+          <div className="results-content">
+            {displayAnalysisSummary(certSummary, "Certificate")}
           </div>
         </details>
       </div>
