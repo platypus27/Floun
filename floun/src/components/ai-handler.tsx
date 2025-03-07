@@ -43,22 +43,22 @@ export async function createReport(jsResults: string[], tokenResults: string[], 
             'Write in paragraphs an introduction highlighting the purpose, scope and audience of quantum cryptography report for web security.'
         );
         const executiveSummary = await generateChatMessage(
-            `Write in paragraphs an concise executive summary on quantum-safe cryptography based on the following findings. Do not output the tokens, hashes or certificates directly and no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+            `Write in paragraphs an concise executive summary on quantum-safe cryptography based on the following findings. Do not output the tokens, hashes or certificates directly and no special characters, do include punctuations when necessary:\n${allResults.join("\n")}`
         );
         const vulnerabilityAnalysis = await generateChatMessage(
-            `Write in paragraphs an analysis of the quantum cryptographic vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed: \n${allResults.join("\n")}`
+            `Write in paragraphs an analysis of the quantum cryptographic vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, do include punctuations when necessary: \n${allResults.join("\n")}`
         );
         const riskAssessment = await generateChatMessage(
-            `Write in paragraphs a risk assessment based on the quantum cryptographic vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+            `Write in paragraphs a risk assessment based on the quantum cryptographic vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, do include punctuations when necessary:\n${allResults.join("\n")}`
         );
         const recommendations = await generateChatMessage(
-            `Write in paragraphs providing short-term and long-term recommendations for mitigating the identified vulnerabilities based on the following findings Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+            `Write in paragraphs providing short-term and long-term recommendations for mitigating the identified vulnerabilities based on the following findings Do not output the tokens, hashes or certificates directly no special characters, do include punctuations when necessary:\n${allResults.join("\n")}`
         );
         const nextStep = await generateChatMessage(
-            `Write in paragraphs the next steps for implementing quantum-safe cryptography based on the quantum vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+            `Write in paragraphs the next steps for implementing quantum-safe cryptography based on the quantum vulnerabilities found. Do not output the tokens, hashes or certificates directly no special characters, do include punctuations when necessary:\n${allResults.join("\n")}`
         );
         const conclusion = await generateChatMessage(
-            `Write in paragraphs a conclusion summarizing the key findings and recommendations for quantum-safe cryptography based on the vulnerabilities found Do not output the tokens, hashes or certificates directly no special characters, punctuations are allowed:\n${allResults.join("\n")}`
+            `Write in paragraphs a conclusion summarizing the key findings and recommendations for quantum-safe cryptography based on the vulnerabilities found Do not output the tokens, hashes or certificates directly no special characters, do include punctuations when necessary:\n${allResults.join("\n")}`
         );
 
         // Sanitize the AI-generated content

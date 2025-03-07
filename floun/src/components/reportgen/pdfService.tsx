@@ -131,7 +131,7 @@ export async function generatePDFReport(
     drawWrappedText(executiveSummaryPage, content.executiveSummary, 50, executiveSummaryPage.getHeight() - 80, 500, 12, font);
 
     const vulnerabilityPage = pdfDoc.addPage([600, 800]);
-    vulnerabilityPage.drawText("4. Vulnerability Analysis", {
+    vulnerabilityPage.drawText("3. Vulnerability Analysis", {
       x: 50,
       y: vulnerabilityPage.getHeight() - 50,
       size: 18,
@@ -142,7 +142,7 @@ export async function generatePDFReport(
     drawWrappedText(vulnerabilityPage, vulnerabilityText, 50, vulnerabilityPage.getHeight() - 80, 500, 12, font);
 
     const riskAssessmentPage = pdfDoc.addPage([600, 800]);
-    riskAssessmentPage.drawText("5. Risk Assessment", {
+    riskAssessmentPage.drawText("4. Risk Assessment", {
       x: 50,
       y: riskAssessmentPage.getHeight() - 50,
       size: 18,
@@ -152,7 +152,7 @@ export async function generatePDFReport(
     drawWrappedText(riskAssessmentPage, content.riskAssessment, 50, riskAssessmentPage.getHeight() - 80, 500, 12, font);
 
     const recommendationsPage = pdfDoc.addPage([600, 800]);
-    recommendationsPage.drawText("6. Recommendations", {
+    recommendationsPage.drawText("5. Recommendations", {
       x: 50,
       y: recommendationsPage.getHeight() - 50,
       size: 18,
@@ -162,7 +162,7 @@ export async function generatePDFReport(
     drawWrappedText(recommendationsPage, content.recommendations, 50, recommendationsPage.getHeight() - 80, 500, 12, font);
 
     const nextStepsPage = pdfDoc.addPage([600, 800]);
-    nextStepsPage.drawText("8. Next Steps", {
+    nextStepsPage.drawText("6. Next Steps", {
       x: 50,
       y: nextStepsPage.getHeight() - 50,
       size: 18,
@@ -173,7 +173,7 @@ export async function generatePDFReport(
     drawWrappedText(nextStepsPage, nextStepsText, 50, nextStepsPage.getHeight() - 80, 500, 12, font);
 
     const conclusionPage = pdfDoc.addPage([600, 800]);
-    conclusionPage.drawText("9. Conclusion", {
+    conclusionPage.drawText("7. Conclusion", {
       x: 50,
       y: conclusionPage.getHeight() - 50,
       size: 18,
@@ -184,7 +184,7 @@ export async function generatePDFReport(
     drawWrappedText(conclusionPage, conclusionText, 50, conclusionPage.getHeight() - 80, 500, 12, font);
 
     const appendicesPage = pdfDoc.addPage([600, 800]);
-    appendicesPage.drawText("10. Appendices", {
+    appendicesPage.drawText("8. Appendices", {
       x: 50,
       y: appendicesPage.getHeight() - 50,
       size: 18,
@@ -223,17 +223,18 @@ function drawWrappedText(
   fontSize: number,
   font: any
 ): void {
-  // Remove newline characters to prevent encoding errors
-  const cleanText = text.replace(/[\r\n]+/g, " ");
-  const lines = wrapText(cleanText, maxWidth, font, fontSize);
+  const lines = wrapText(text, maxWidth, font, fontSize);
   lines.forEach((line, index) => {
+    if (y - index * fontSize < 50) {
+      page = page.doc.addPage([600, 800]);
+      y = page.getHeight() - 50;
+    }
     page.drawText(line, {
       x,
-      y: y - index * 15, // Adjust line height
+      y: y - index * fontSize, // Adjust line height
       size: fontSize,
       font,
       color: rgb(0, 0, 0),
-      maxWidth,
     });
   });
 }
@@ -247,7 +248,7 @@ function drawWrappedText(
  * @returns An array of wrapped lines.
  */
 function wrapText(text: string, maxWidth: number, font: any, fontSize: number): string[] {
-  const words = text.split(" ");
+  const words = text.replace(/\n/g, " ").split(" ");
   const lines: string[] = [];
   let currentLine = words[0];
 
