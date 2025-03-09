@@ -1,6 +1,6 @@
 # Floun - Quantum-Resistant Protocol Analyzer
 
-![Floun Logo](#) <!-- Replace with your logo -->
+![Floun Logo](floun/public/floun.png)
 
 Floun is a browser extension designed to scan websites for cryptographic vulnerabilities and prepare them for the quantum computing era. By identifying weak encryption methods and recommending quantum-resistant alternatives, Floun helps users future-proof their digital infrastructure.
 
