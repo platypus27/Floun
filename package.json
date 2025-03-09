@@ -1,7 +1,0 @@
-{
-  "dependencies": {
-    "@types/chrome": "^0.0.308",
-    "@types/react": "^19.0.10"
-    
-  }
-}
