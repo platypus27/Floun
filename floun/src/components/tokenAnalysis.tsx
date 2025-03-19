@@ -1,4 +1,3 @@
-//// filepath: /g:/Git Projects/ICT2214/floun/src/components/tokenAnalysis.tsx
 import FormatTest from './sessiontokenanalysis/formattest';
 import EntropyTest from './sessiontokenanalysis/entropytest';
 import PatternTest from './sessiontokenanalysis/patterntest';
@@ -8,8 +7,8 @@ export const analyzeTokens = (tokens: any[]): string[] => {
   const results: string[] = [];
 
   tokens.forEach(token => {
-    // Skip empty or whitespace-only tokens.
-    if (!token || token.trim() === "") {
+    // Skip empty, whitespace-only tokens, or tokens that equal "No tokens found"
+    if (!token || token.trim() === "" || token === "No tokens found") {
       return;
     }
 
