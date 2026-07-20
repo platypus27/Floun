@@ -26,6 +26,9 @@ test("the repository exposes a complete open-source contributor contract", () =>
   expect(contributing).toContain("npm run release:check");
   expect(contributing).toContain("<action>: <description>");
   expect(security).toContain("ngaoyu27@gmail.com");
+  expect(security).toContain(
+    "https://github.com/platypus27/floun/security/advisories/new",
+  );
   expect(security).toMatch(/do not.*public issue/i);
   expect(packageJson).toMatchObject({
     private: true,

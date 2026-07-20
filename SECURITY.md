@@ -14,7 +14,9 @@ Security reports are accepted for the current `main` branch and every version ex
 
 Please do not report security vulnerabilities through a public issue, discussion, or pull request.
 
-Send a private report to [ngaoyu27@gmail.com](mailto:ngaoyu27@gmail.com) with the subject `Floun security report`. Include:
+Use [GitHub private vulnerability reporting](https://github.com/platypus27/floun/security/advisories/new) whenever possible. This creates a private advisory visible only to the reporter and repository maintainers.
+
+If the private advisory form is unavailable, send the report to [ngaoyu27@gmail.com](mailto:ngaoyu27@gmail.com) with the subject `Floun security report`. Include:
 
 - A description of the issue and its potential impact.
 - Reproduction steps or a minimal proof of concept.
