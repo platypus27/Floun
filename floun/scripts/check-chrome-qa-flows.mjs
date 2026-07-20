@@ -479,8 +479,15 @@ async function capturePopupScreenshot(popupTarget, outputPath) {
   }
 }
 
-async function verifyByokDrafting({ downloadDir, popupTarget }) {
-  const client = new CdpClient(popupTarget.webSocketDebuggerUrl);
+async function verifyByokDrafting({
+  browserClient,
+  downloadDir,
+  extensionId,
+  fixtureUrl,
+  popupTarget,
+  port,
+}) {
+  let client = new CdpClient(popupTarget.webSocketDebuggerUrl);
   const initialPdfs = new Map(findDownloadedPdfs(downloadDir).map((path) => [
     path,
     statSync(path).mtimeMs,
@@ -490,14 +497,11 @@ async function verifyByokDrafting({ downloadDir, popupTarget }) {
   await client.open();
 
   try {
-    await client.send("Fetch.enable", {
-      patterns: [{ urlPattern: "https://api.deepseek.com/*", requestStage: "Request" }],
-    });
     await client.send("Runtime.evaluate", {
       expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'AI Settings').click()",
       userGesture: true,
     });
-    await sleep(100);
+    await sleep(250);
     await client.send("Runtime.evaluate", {
       expression: `(() => {
         const keyInput = document.getElementById('deepseekApiKey');
@@ -519,7 +523,8 @@ async function verifyByokDrafting({ downloadDir, popupTarget }) {
     });
     await sleep(250);
     const savedSettings = await client.send("Runtime.evaluate", {
-      expression: "JSON.parse(localStorage.getItem('floun.reportDrafting.deepseek.v1'))",
+      expression: "(async () => (await chrome.storage.local.get('floun.reportDrafting.deepseek.v2'))['floun.reportDrafting.deepseek.v2'])()",
+      awaitPromise: true,
       returnByValue: true,
     });
 
@@ -527,6 +532,48 @@ async function verifyByokDrafting({ downloadDir, popupTarget }) {
       throw new Error("DeepSeek BYOK settings were not saved through the consent UI.");
     }
 
+    client.close();
+    const reopenedScan = await scanUrl({
+      browserClient,
+      extensionId,
+      label: "Persisted DeepSeek BYOK fixture scan",
+      port,
+      url: fixtureUrl,
+      waitMs: 90_000,
+    });
+    client = new CdpClient(reopenedScan.popupTarget.webSocketDebuggerUrl);
+    await client.open();
+    await client.send("Runtime.evaluate", {
+      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'AI Settings').click()",
+      userGesture: true,
+    });
+    await sleep(250);
+    const reopenedSettings = await client.send("Runtime.evaluate", {
+      expression: `({
+        text: document.body.innerText,
+        hasKeyInput: Boolean(document.getElementById('deepseekApiKey')),
+        hasFullKey: document.body.innerText.includes('${fakeApiKey}'),
+      })`,
+      returnByValue: true,
+    });
+    if (
+      !reopenedSettings.result.value?.text.includes("Saved on this device") ||
+      !reopenedSettings.result.value?.text.includes(`Key ending in ${fakeApiKey.slice(-4)}`) ||
+      reopenedSettings.result.value?.hasKeyInput ||
+      reopenedSettings.result.value?.hasFullKey
+    ) {
+      throw new Error("DeepSeek BYOK settings did not reopen as masked persisted status.");
+    }
+    if (process.env.FLOUN_BYOK_SCREENSHOT) {
+      await capturePopupScreenshot(
+        reopenedScan.popupTarget,
+        resolve(process.env.FLOUN_BYOK_SCREENSHOT)
+      );
+    }
+
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://api.deepseek.com/*", requestStage: "Request" }],
+    });
     await client.send("Runtime.evaluate", {
       expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'Generate Report').click()",
       userGesture: true,
@@ -571,16 +618,34 @@ async function verifyByokDrafting({ downloadDir, popupTarget }) {
       throw new Error(`DeepSeek BYOK PDF leaked raw fixture tokens: ${rawTokenLeaks.join(", ")}`);
     }
 
+    await client.send("Runtime.evaluate", {
+      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'Remove Key').click()",
+      userGesture: true,
+    });
+    await sleep(250);
+    const removedSettings = await client.send("Runtime.evaluate", {
+      expression: `(async () => ({
+        saved: (await chrome.storage.local.get('floun.reportDrafting.deepseek.v2'))['floun.reportDrafting.deepseek.v2'],
+        hasKeyInput: Boolean(document.getElementById('deepseekApiKey')),
+      }))()`,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (removedSettings.result.value?.saved !== undefined || !removedSettings.result.value?.hasKeyInput) {
+      throw new Error("DeepSeek BYOK settings were not removed through the persisted settings UI.");
+    }
+
     return buildScenarioResult(
       "byok",
-      "DeepSeek BYOK consent",
+      "Persistent DeepSeek BYOK consent",
       requests.length === 7,
-      `consentSaved=true; redactedRequests=${requests.length}; rawTokenLeaks=${rawTokenLeaks.length}`
+      `persistedAfterReopen=true; removedThroughUi=true; redactedRequests=${requests.length}; rawTokenLeaks=${rawTokenLeaks.length}`
     );
   } finally {
     try {
       await client.send("Runtime.evaluate", {
-        expression: "localStorage.removeItem('floun.reportDrafting.deepseek.v1')",
+        expression: "chrome.storage.local.remove('floun.reportDrafting.deepseek.v2')",
+        awaitPromise: true,
       });
     } catch {
       // Best-effort cleanup of the isolated QA profile.
@@ -714,8 +779,12 @@ async function runChromeQaFlows({
       waitMs: 90_000,
     });
     results.push(await verifyByokDrafting({
+      browserClient,
       downloadDir,
+      extensionId: flounExtension.id,
+      fixtureUrl,
       popupTarget: byokFixtureScan.popupTarget,
+      port,
     }));
 
     assertRequiredScenarioResults(results);

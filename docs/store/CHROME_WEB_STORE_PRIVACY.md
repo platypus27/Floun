@@ -10,6 +10,8 @@ Floun provides lightweight, on-demand crypto-readiness and migration signal scan
 
 `scripting`: Used to inject the page collector into the active tab after a user-initiated scan. There is no always-on content script.
 
+`storage`: Used for device-local extension storage of a user-owned DeepSeek API key and consent choice. The credential is not stored in Chrome Sync.
+
 `https://api.ssllabs.com/*`: Used by the background service worker to request TLS and leaf-certificate signature metadata for the scanned hostname.
 
 `https://api.deepseek.com/*`: Used by optional AI report drafting. It is contacted only after the user supplies their own DeepSeek API key and explicitly consents in AI Settings. The store package contains no API key.
@@ -20,7 +22,7 @@ Floun processes the active tab URL locally to build scan target metadata, minimi
 
 Floun sends the scanned hostname to SSL Labs for TLS and certificate metadata. If the user supplies a DeepSeek API key and explicitly consents, Floun sends redacted report findings to DeepSeek when the user generates a report. It does not sell user data, use it for advertising, or transfer raw token values to either service.
 
-The user-owned DeepSeek API key is stored in the extension's local browser storage and can be removed from AI Settings. Without both a key and consent, Floun uses local fallback report text and makes no DeepSeek request.
+The user-owned DeepSeek API key is stored in device-local extension storage and can be replaced or removed from AI Settings. It persists across popup closes, browser restarts, and extension updates, but is cleared when Floun is uninstalled. Without both a key and consent, Floun uses local fallback report text and makes no DeepSeek request.
 
 ## Remote Code Declaration
 

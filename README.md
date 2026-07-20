@@ -59,7 +59,7 @@ This drives the extension action on tab targets, scans the local fixture, scans 
 
 ## Optional DeepSeek Report Text
 
-PDF reports work without an AI key by using local fallback text. To enable DeepSeek-drafted sections, open **AI Settings** in the extension, enter your own DeepSeek API key, review the disclosure, and explicitly consent. The key is stored only in the extension's local browser storage and can be removed from the same panel.
+PDF reports work without an AI key by using local fallback text. To enable DeepSeek-drafted sections, open **AI Settings** in the extension, enter your own DeepSeek API key once, review the disclosure, and explicitly consent. The key is saved in device-local extension storage across popup closes, browser restarts, and extension updates. It is not synced between devices and can be replaced or removed from the same panel.
 
 ## Manual Installation
 

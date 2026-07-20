@@ -102,6 +102,23 @@ button:hover {
   margin: 1rem 0 0;
 }
 
+.saved-key-panel {
+  padding: 0.85rem;
+  border: 1px solid #8ebfc3;
+  border-radius: 0.45rem;
+  background: #fff;
+}
+
+.saved-key-panel p {
+  margin: 0 0 0.35rem;
+}
+
+.saved-key-panel p:last-of-type {
+  margin-bottom: 0;
+  color: #47696c;
+  font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
 img {
   max-width: 7rem;
 }

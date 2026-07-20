@@ -46,8 +46,8 @@ npm run qa:chrome:flows
 9. Scan a known HTTPS site and confirm both TLS and certificate findings contain usable SSL Labs evidence. An unavailable certificate result is a failure.
 10. Attempt unsupported extension/browser pages such as `chrome://extensions/` and confirm the popup shows a graceful error.
 11. Generate a PDF report with DeepSeek disabled and confirm raw tokens are absent.
-12. In **AI Settings**, enter a user-owned key, review the disclosure, consent, and confirm DeepSeek-generated text contains no raw tokens, code snippets, hashes, or certificate bodies.
-13. Remove the key and confirm local fallback reporting still works.
+12. In **AI Settings**, enter a user-owned key, review the disclosure, consent, close and reopen the popup, and confirm only masked saved-key status appears. Generate the report and confirm DeepSeek-generated text contains no raw tokens, code snippets, hashes, or certificate bodies.
+13. Remove the key through AI Settings and confirm local fallback reporting still works.
 14. Record the QA result in `docs/release/2.1.0/QA_EVIDENCE.md`.
 
 ## Chrome Web Store Prep

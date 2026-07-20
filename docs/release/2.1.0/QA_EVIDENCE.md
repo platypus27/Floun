@@ -7,17 +7,17 @@ Status: release candidate verified locally on Linux on 2026-07-20. The candidate
 - Package path: `floun/release/floun-2.1.0.zip`
 - Alias package path: `floun/release/floun-2.1.zip`
 - Extension version: `2.1.0`
-- SHA-256: `3495bdab2f8e0b5ff0ab45c4bcca63e40c573b819e9db9b7bf20da168b71da17`
-- Alias SHA-256: `3495bdab2f8e0b5ff0ab45c4bcca63e40c573b819e9db9b7bf20da168b71da17`
-- Size bytes: `323303`
-- Two independent deterministic packaging runs produced matching SHA-256: `3495bdab2f8e0b5ff0ab45c4bcca63e40c573b819e9db9b7bf20da168b71da17`
+- SHA-256: `c83b923a78cef695e22bed6452fe46232479cdbbe675b9efcc40de03bf328ba5`
+- Alias SHA-256: `c83b923a78cef695e22bed6452fe46232479cdbbe675b9efcc40de03bf328ba5`
+- Size bytes: `323851`
+- Two independent deterministic packaging runs produced matching SHA-256: `c83b923a78cef695e22bed6452fe46232479cdbbe675b9efcc40de03bf328ba5`
 
 Required archive entries:
 
-- `assets/ai-handler-DJidJz4d.js`
-- `assets/index-BbKA9AuB.css`
-- `assets/index-BZkU2Dza.js`
-- `assets/pdfService-DiXBXVWa.js`
+- `assets/ai-handler-CNLNuJfs.js`
+- `assets/index-Cgq4PE7E.css`
+- `assets/index-Clfqc2QC.js`
+- `assets/pdfService-Dan7Gqxy.js`
 - `assets/scanProtocol-ChyA6h0r.js`
 - `background.js`
 - `icons/favicon.ico`
@@ -29,14 +29,14 @@ Required archive entries:
 - `manifest.json`
 - `robots.txt`
 
-The artifact gate verified safe relative ZIP entries, an exact MV3 manifest schema, `activeTab` and `scripting` permissions, the SSL Labs and DeepSeek host allowlist, CSP, internal asset references, expected file types, and absence of source, fixtures, source maps, environment files, raw QA tokens, or API-key-like values.
+The artifact gate verified safe relative ZIP entries, an exact MV3 manifest schema, `activeTab`, `scripting`, and `storage` permissions, the SSL Labs and DeepSeek host allowlist, CSP, internal asset references, expected file types, and absence of source, fixtures, source maps, environment files, raw QA tokens, or API-key-like values.
 
 ## Scripted Verification
 
 | Check | Result | Evidence |
 | --- | --- | --- |
 | `npm ci` | Pass | 293 packages installed from the lockfile; npm reported zero vulnerabilities. |
-| `npm run release:check` | Pass | 32 test files and 117 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
+| `npm run release:check` | Pass | 32 test files and 123 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
 | `npm run release:artifact` | Pass | Canonical and alias archives matched the recorded version, entries, size, and SHA-256. |
 | `npm run release:determinism` | Pass | Two clean package runs were byte-identical. |
 | `npm run store:check` | Pass | Required store documents and 128x128, 1280x800, and 440x280 PNG assets passed. |
@@ -56,8 +56,8 @@ These rows are backed by the Chrome DevTools Protocol QA run against the unpacke
 | Scan `https://www.cloudflare.com/` | Pass | Detected 95 occurrences, rendered TLS and certificate evidence from one SSL Labs assessment, and displayed page-data truncation as a partial warning. |
 | Scan `http://example.com/` | Pass | Completed with explicit TLS and certificate unavailable warnings for the blacklisted host. |
 | Attempt unsupported page such as `chrome://extensions/` | Pass | Displayed the expected HTTP/HTTPS-only error without crashing the popup. |
-| Generate PDF report | Pass | Downloaded a 37,095-byte PDF; none of the five raw fixture token values appeared in the file. |
-| Configure and clear DeepSeek BYOK with explicit consent | Pass | Saved the fake key only after consent, sent seven redacted authenticated requests to the intercepted endpoint, generated a leak-free PDF, and cleared settings in the isolated profile. |
+| Generate PDF report | Pass | Downloaded a 37,096-byte PDF; none of the five raw fixture token values appeared in the file. |
+| Configure and clear DeepSeek BYOK with explicit consent | Pass | Saved the fake key only after consent, reopened the popup with masked persisted status, sent seven redacted authenticated requests to the intercepted endpoint, generated a leak-free PDF, and removed the key through the UI. |
 | Store package built without AI key | Pass | Artifact secret scanning found no DeepSeek-style key, environment file, or build-time AI secret. |
 
 ## Publication Boundary

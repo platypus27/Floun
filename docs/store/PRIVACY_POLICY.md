@@ -20,13 +20,13 @@ The Chrome Web Store package contains no API key. Without both a user-owned key 
 
 ## Storage and Retention
 
-Floun keeps scan results in the extension popup flow while the user is using it. Generated PDF reports are saved only when the user chooses to create them. A user-owned DeepSeek API key and consent choice are stored in the extension's local browser storage until the user removes them in AI Settings or clears the extension's data.
+Floun keeps scan results in the extension popup flow while the user is using it. Generated PDF reports are saved only when the user chooses to create them. A user-owned DeepSeek API key and consent choice are stored in device-local extension storage. They persist across popup closes, browser restarts, and extension updates until the user removes them in AI Settings or the extension is uninstalled. The key is not stored in Chrome Sync.
 
 Floun does not sell user data, use it for advertising, or share raw token values with third parties.
 
 ## Permissions
 
-Floun uses `activeTab` and `scripting` for user-initiated scans of the active tab. It uses explicit host permissions for SSL Labs transport metadata lookups and optional, consented DeepSeek report drafting.
+Floun uses `activeTab` and `scripting` for user-initiated scans of the active tab. It uses `storage` for the device-local key and consent choice. It uses explicit host permissions for SSL Labs transport metadata lookups and optional, consented DeepSeek report drafting.
 
 Floun does not request `<all_urls>`, `file://`, cookies, browsing history, or always-on content-script permissions.
 

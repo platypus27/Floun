@@ -26,7 +26,7 @@ Core capabilities:
 - TLS and certificate metadata checks through explicit API host permissions.
 - Explainable findings with severity, confidence, rationale, limitations, recommendations, rule IDs, and references.
 - Redacted PDF report generation.
-- Optional DeepSeek V4 Flash-drafted report sections through a user-supplied DeepSeek API key, enabled only after explicit consent in AI Settings.
+- Optional DeepSeek V4 Flash-drafted report sections through a user-supplied DeepSeek API key, saved on this device and enabled only after explicit consent in AI Settings.
 
 Scope boundaries:
 
@@ -47,7 +47,7 @@ Suggested review flow:
 4. Generate a PDF report and confirm raw token values are not exposed.
 5. Optional local fixture: serve `floun/fixtures/` with `npm run fixture:server` and scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
-The store package contains no API key. Optional DeepSeek drafting is off by default. Users must provide their own key, review the in-product disclosure, and explicitly consent before any redacted report findings are sent to DeepSeek. The key can be removed from AI Settings.
+The store package contains no API key. Optional DeepSeek drafting is off by default. Users provide their own key once per Chrome installation, review the in-product disclosure, and explicitly consent before any redacted report findings are sent to DeepSeek. The key is saved on this device, is not synced between devices, and can be replaced or removed from AI Settings.
 
 ## Required Store Assets
 

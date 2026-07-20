@@ -35,7 +35,7 @@ Then scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
 ## Optional DeepSeek Report Text
 
-PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted sections, open **AI Settings** in the popup, enter a user-owned DeepSeek API key, review the disclosure, and explicitly consent. The key is stored only in the extension's local browser storage and can be removed at any time.
+PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted sections, open **AI Settings** in the popup, enter a user-owned DeepSeek API key once, review the disclosure, and explicitly consent. The key is stored in device-local extension storage, persists across popup closes, browser restarts, and extension updates, and can be replaced or removed at any time. It is not synced between devices.
 
 ## Current Modules
 
@@ -49,7 +49,7 @@ PDF reports work without an AI key by using a local fallback summary. To enable 
 - `src/components/sessiontokenanalysis/tokenCheckRegistry.ts` coordinates single-token and batch-token checks.
 - `src/components/findingUiSerializers.ts`, `src/components/reportgen/findingSerializers.ts`, and `src/components/evidenceRedaction.ts` own UI/report formatting and evidence redaction policy.
 - `src/components/reportgen/reportDocument.ts` builds redacted report documents for AI prompts and PDF rendering.
-- `src/components/reportgen/reportDraftingSettings.ts` owns local BYOK settings and consent state.
+- `src/components/reportgen/reportDraftingSettings.ts` owns persistent device-local BYOK settings, consent state, and v1 storage migration.
 - `src/components/reportgen/*` builds redacted report content and writes the PDF.
 - `src/extension/background/*` receives direct popup scan requests, performs active-tab page injection on demand, runs one SSL Labs transport assessment, and normalizes TLS and certificate output into scan facts.
 

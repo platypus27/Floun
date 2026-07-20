@@ -23,6 +23,9 @@ test("the v2.1 store contract matches shipped BYOK behavior and permissions", ()
   expect(combined).not.toContain("ssl-checker.io");
   expect(listing).toMatch(/user-supplied DeepSeek API key/i);
   expect(listing).toMatch(/explicit consent/i);
+  expect(listing).toMatch(/saved on this device/i);
+  expect(privacyFields).toMatch(/device-local extension storage/i);
+  expect(privacyPolicy).toMatch(/extension is uninstalled/i);
   expect(privacyPolicy).toContain(
     "Floun's use and transfer of user data complies with the Chrome Web Store User Data Policy, including its Limited Use requirements."
   );

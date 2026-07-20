@@ -1,14 +1,16 @@
 /// <reference types="chrome"/>
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
 import { AnalysisFinding } from './components/analysisFinding';
 import { AnalysisModuleResult, runAnalysisModules } from './components/analysisModules';
 import { ScanPayload, emptyScanMeta, scanActiveTab } from './extension/scanClient';
 import {
   clearReportDraftingSettings,
+  loadReportDraftingStatus,
   loadReportDraftingSettings,
   saveReportDraftingSettings,
 } from './components/reportgen/reportDraftingSettings';
+import type { ReportDraftingStatus } from './components/reportgen/reportDraftingSettings';
 
 interface DashboardProps {
   resultsLoaded: boolean;
@@ -117,16 +119,37 @@ const Dashboard: React.FC<DashboardProps> = ({
 };
 
 const App: React.FC = () => {
-  const [initialSettings] = useState(loadReportDraftingSettings);
   const [scanError, setScanError] = useState<string | null>(null);
   const [moduleResults, setModuleResults] = useState<AnalysisModuleResult[]>([]);
   const [scanWarnings, setScanWarnings] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resultsLoaded, setResultsLoaded] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [apiKey, setApiKey] = useState(initialSettings.apiKey);
-  const [consented, setConsented] = useState(initialSettings.consented);
+  const [settingsReady, setSettingsReady] = useState(false);
+  const [settingsStatus, setSettingsStatus] = useState<ReportDraftingStatus>({
+    configured: false,
+    consented: false,
+    keySuffix: '',
+  });
+  const [editingKey, setEditingKey] = useState(false);
+  const [apiKey, setApiKey] = useState('');
+  const [consented, setConsented] = useState(false);
   const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+
+    loadReportDraftingStatus().then((status) => {
+      if (!active) return;
+      setSettingsStatus(status);
+      setEditingKey(!status.configured);
+      setSettingsReady(true);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const setAnalysisResults = (scanPayload: ScanPayload) => {
     setModuleResults(runAnalysisModules(scanPayload));
@@ -153,35 +176,60 @@ const App: React.FC = () => {
   const handleGenerateReport = async () => {
     try {
       const { createReport } = await import('./components/ai-handler');
-      await createReport(moduleResults, loadReportDraftingSettings());
+      await createReport(moduleResults, await loadReportDraftingSettings());
     } catch (error) {
       setScanError(getErrorMessage(error));
     }
   };
 
-  const handleSaveSettings = () => {
-    if (apiKey.trim() && !consented) {
+  const handleSaveSettings = async () => {
+    if (!apiKey.trim()) {
+      setSettingsMessage('Enter a DeepSeek API key before saving.');
+      return;
+    }
+
+    if (!consented) {
       setSettingsMessage('Consent is required before DeepSeek drafting can be enabled.');
       return;
     }
 
     try {
-      const saved = saveReportDraftingSettings({ apiKey, consented });
-      setApiKey(saved.apiKey);
-      setConsented(saved.consented);
-      setSettingsMessage(saved.consented
-        ? 'DeepSeek drafting is enabled with your locally stored key.'
-        : 'Local PDF drafting is enabled. DeepSeek is off.');
+      const status = await saveReportDraftingSettings({ apiKey, consented });
+      setSettingsStatus(status);
+      setEditingKey(false);
+      setApiKey('');
+      setConsented(false);
+      setSettingsMessage('DeepSeek drafting is enabled with your key saved on this device.');
     } catch {
       setSettingsMessage('AI settings could not be saved in this browser profile.');
     }
   };
 
-  const handleClearSettings = () => {
-    clearReportDraftingSettings();
+  const handleReplaceSettings = () => {
+    setEditingKey(true);
     setApiKey('');
     setConsented(false);
-    setSettingsMessage('DeepSeek settings were removed. Local PDF drafting remains available.');
+    setSettingsMessage('Enter the replacement key and consent again before saving.');
+  };
+
+  const handleCancelReplace = () => {
+    setEditingKey(false);
+    setApiKey('');
+    setConsented(false);
+    setSettingsMessage(null);
+  };
+
+  const handleClearSettings = async () => {
+    try {
+      await clearReportDraftingSettings();
+      setSettingsStatus({ configured: false, consented: false, keySuffix: '' });
+      setEditingKey(true);
+      setApiKey('');
+      setConsented(false);
+      setSettingsMessage('DeepSeek settings were removed. Local PDF drafting remains available.');
+    } catch {
+      setSettingsMessage('DeepSeek settings could not be removed from this browser profile.');
+    }
   };
 
   return (
@@ -206,37 +254,56 @@ const App: React.FC = () => {
           <h2 id="ai-settings-title">Optional DeepSeek drafting</h2>
           <p>
             When enabled, Floun sends redacted report findings to DeepSeek to draft report text.
-            Raw token evidence is omitted. Your API key stays in this browser profile.
+            Raw token evidence is omitted. Your API key stays on this device.
           </p>
-          <label htmlFor="deepseekApiKey">DeepSeek API key</label>
-          <input
-            id="deepseekApiKey"
-            type="password"
-            autoComplete="off"
-            value={apiKey}
-            onChange={(event) => {
-              setApiKey(event.target.value);
-              setSettingsMessage(null);
-            }}
-          />
-          <label className="consent-row" htmlFor="deepseekConsent">
-            <input
-              id="deepseekConsent"
-              type="checkbox"
-              checked={consented}
-              onChange={(event) => {
-                setConsented(event.target.checked);
-                setSettingsMessage(null);
-              }}
-            />
-            I consent to sending redacted report findings to DeepSeek when I generate a report.
-          </label>
-          <div className="settings-actions">
-            <button type="button" onClick={handleSaveSettings}>Save AI Settings</button>
-            <button type="button" className="secondary-button" onClick={handleClearSettings}>
-              Remove Key
-            </button>
-          </div>
+          {!settingsReady ? (
+            <p role="status">Loading saved AI settings...</p>
+          ) : settingsStatus.configured && !editingKey ? (
+            <div className="saved-key-panel">
+              <p><strong>Saved on this device</strong></p>
+              <p>Key ending in {settingsStatus.keySuffix}</p>
+              <div className="settings-actions">
+                <button type="button" onClick={handleReplaceSettings}>Replace Key</button>
+                <button type="button" className="secondary-button" onClick={handleClearSettings}>
+                  Remove Key
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <label htmlFor="deepseekApiKey">DeepSeek API key</label>
+              <input
+                id="deepseekApiKey"
+                type="password"
+                autoComplete="off"
+                value={apiKey}
+                onChange={(event) => {
+                  setApiKey(event.target.value);
+                  setSettingsMessage(null);
+                }}
+              />
+              <label className="consent-row" htmlFor="deepseekConsent">
+                <input
+                  id="deepseekConsent"
+                  type="checkbox"
+                  checked={consented}
+                  onChange={(event) => {
+                    setConsented(event.target.checked);
+                    setSettingsMessage(null);
+                  }}
+                />
+                I consent to sending redacted report findings to DeepSeek when I generate a report.
+              </label>
+              <div className="settings-actions">
+                <button type="button" onClick={handleSaveSettings}>Save AI Settings</button>
+                {settingsStatus.configured && (
+                  <button type="button" className="secondary-button" onClick={handleCancelReplace}>
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </>
+          )}
           {settingsMessage && <p role="status">{settingsMessage}</p>}
         </section>
       )}

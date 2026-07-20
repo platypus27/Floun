@@ -8,7 +8,8 @@ Floun 2.1 makes the optional AI report workflow safe for production, consolidate
 
 ## Highlights
 
-- Added user-managed DeepSeek API-key settings with explicit consent. Floun stores the key locally in the extension profile and makes no DeepSeek request unless both a key and consent are present.
+- Added user-managed DeepSeek API-key settings with explicit consent. Floun stores the key once in device-local extension storage, restores masked saved status across popup and browser restarts, and makes no DeepSeek request unless both a key and consent are present.
+- Added safe one-time migration from the earlier popup storage record. Replacement requires fresh consent, and removal clears both the key and consent.
 - Removed the embedded/build-time AI-key path and its `.env.example` contract. Release artifacts are checked for environment files and API-key-like values.
 - Kept raw detected tokens out of AI prompts and generated PDFs. Browser QA verifies seven redacted AI requests and scans the resulting PDF for raw fixture values.
 - Consolidated TLS and leaf-certificate collection into one cached SSL Labs assessment, removing the second certificate provider and host permission.

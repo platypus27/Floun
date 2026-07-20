@@ -1,5 +1,6 @@
 import { registerBackgroundMessageHandler } from "./messageHandler";
 
+void chrome.storage.local.setAccessLevel({ accessLevel: "TRUSTED_CONTEXTS" });
 registerBackgroundMessageHandler();
 
 export { handleScanMessage } from "./messageHandler";
