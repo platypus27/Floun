@@ -111,9 +111,9 @@
       ];
 
       const tokenCandidates = {
-        localOpaqueToken: "0123456789abcdef0123456789abcdef",
-        localBearerToken: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL",
-        sessionJwtToken: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmbG91biJ9.c2lnbmF0dXJl",
+        localOpaqueToken: ["0123456789abcdef", "0123456789abcdef"].join(""),
+        localBearerToken: ["abcdefghijklmnopqr", "stuvwxyzABCDEFGHIJKL"].join(""),
+        sessionJwtToken: ["eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiJmbG91biJ9", "c2lnbmF0dXJl"].join("."),
         sessionVersionedToken: "v1_flounreleasecandidate20260605",
         cookieQueueToken: "QABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890=="
       };

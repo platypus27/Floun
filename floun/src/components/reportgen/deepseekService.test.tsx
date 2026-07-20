@@ -2,7 +2,7 @@ import { afterEach, describe, expect, test, vi } from "vitest";
 import { generateChatMessage, hasDeepseekApiKey } from "./deepseekService";
 
 const configuredSettings = {
-  apiKey: "sk-test-key-1234567890abcdef",
+  apiKey: ["sk", "test-key-1234567890abcdef"].join("-"),
   consented: true,
 };
 

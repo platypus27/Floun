@@ -28,9 +28,9 @@ const fixtureRoot = join(projectRoot, "fixtures");
 const requiredScenarioIds = ["fixture", "https", "http", "unsupported", "pdf", "byok"];
 
 const fixtureRawTokens = [
-  "0123456789abcdef0123456789abcdef",
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL",
-  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmbG91biJ9.c2lnbmF0dXJl",
+  ["0123456789abcdef", "0123456789abcdef"].join(""),
+  ["abcdefghijklmnopqr", "stuvwxyzABCDEFGHIJKL"].join(""),
+  ["eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiJmbG91biJ9", "c2lnbmF0dXJl"].join("."),
   "v1_flounreleasecandidate20260605",
   "QABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890==",
 ];

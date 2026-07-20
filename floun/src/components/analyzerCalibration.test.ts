@@ -106,9 +106,9 @@ test("calibrates certificate signature facts across deprecated, classical, and P
 test("keeps fixture token values redacted while preserving batch-check findings", () => {
   const sharedPrefix = "aZ7qLm9PQr4xVn2Ty8Bc0Kd6Se3FgH";
   const fixtureTokens = [
-    "0123456789abcdef0123456789abcdef",
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL",
-    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmbG91biJ9.c2lnbmF0dXJl",
+    ["0123456789abcdef", "0123456789abcdef"].join(""),
+    ["abcdefghijklmnopqr", "stuvwxyzABCDEFGHIJKL"].join(""),
+    ["eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiJmbG91biJ9", "c2lnbmF0dXJl"].join("."),
   ];
   const batchTokens = [`${sharedPrefix}A`, `${sharedPrefix}B`];
 

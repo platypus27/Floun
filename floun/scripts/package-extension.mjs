@@ -10,6 +10,7 @@ import {
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { zipSync } from "fflate";
+import { generateThirdPartyNotices } from "./generate-third-party-notices.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = dirname(scriptDir);
@@ -26,10 +27,20 @@ function collectFiles(root, directory = root) {
       const path = join(directory, entry.name);
       return entry.isDirectory() ? collectFiles(root, path) : [path];
     })
-    .sort((left, right) => relative(root, left).localeCompare(relative(root, right)));
+    .sort((left, right) =>
+      relative(root, left).localeCompare(relative(root, right)),
+    );
 }
 
-export function packageExtension({ buildDir, releaseDir, version, legalFiles = defaultLegalFiles }) {
+export function packageExtension({
+  buildDir,
+  releaseDir,
+  version,
+  legalFiles = defaultLegalFiles,
+  generatedEntries = {
+    "THIRD_PARTY_NOTICES.txt": generateThirdPartyNotices({ projectRoot }),
+  },
+}) {
   for (const required of ["manifest.json", "index.html", "background.js"]) {
     const requiredPath = join(buildDir, required);
     if (!existsSync(requiredPath) || !statSync(requiredPath).isFile()) {
@@ -40,18 +51,36 @@ export function packageExtension({ buildDir, releaseDir, version, legalFiles = d
   const aliasVersion = version.split(".").slice(0, 2).join(".") || version;
   const canonicalPath = join(releaseDir, `floun-${version}.zip`);
   const aliasPath = join(releaseDir, `floun-${aliasVersion}.zip`);
-  const entries = Object.fromEntries(collectFiles(buildDir).map((path) => [
-    relative(buildDir, path).split(sep).join("/"),
-    [new Uint8Array(readFileSync(path)), { mtime: fixedTimestamp }],
-  ]));
+  const entries = Object.fromEntries(
+    collectFiles(buildDir).map((path) => [
+      relative(buildDir, path).split(sep).join("/"),
+      [new Uint8Array(readFileSync(path)), { mtime: fixedTimestamp }],
+    ]),
+  );
   for (const { sourcePath, entryName } of legalFiles) {
     if (!existsSync(sourcePath) || !statSync(sourcePath).isFile()) {
       throw new Error(`Required legal file is missing: ${sourcePath}`);
     }
     if (entries[entryName]) {
-      throw new Error(`Legal archive entry conflicts with build output: ${entryName}`);
+      throw new Error(
+        `Legal archive entry conflicts with build output: ${entryName}`,
+      );
     }
-    entries[entryName] = [new Uint8Array(readFileSync(sourcePath)), { mtime: fixedTimestamp }];
+    entries[entryName] = [
+      new Uint8Array(readFileSync(sourcePath)),
+      { mtime: fixedTimestamp },
+    ];
+  }
+  for (const [entryName, content] of Object.entries(generatedEntries)) {
+    if (entries[entryName]) {
+      throw new Error(
+        `Generated archive entry conflicts with build output: ${entryName}`,
+      );
+    }
+    entries[entryName] = [
+      new TextEncoder().encode(content),
+      { mtime: fixedTimestamp },
+    ];
   }
   const archive = zipSync(entries, { level: 9, mtime: fixedTimestamp });
 
@@ -65,7 +94,9 @@ export function packageExtension({ buildDir, releaseDir, version, legalFiles = d
 }
 
 function main() {
-  const packageJson = JSON.parse(readFileSync(join(projectRoot, "package.json"), "utf8"));
+  const packageJson = JSON.parse(
+    readFileSync(join(projectRoot, "package.json"), "utf8"),
+  );
   const result = packageExtension({
     buildDir: join(projectRoot, "build"),
     releaseDir: join(projectRoot, "release"),
@@ -78,7 +109,10 @@ function main() {
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (
+  process.argv[1] &&
+  resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+) {
   try {
     main();
   } catch (error) {

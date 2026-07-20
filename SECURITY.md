@@ -2,13 +2,13 @@
 
 ## Supported versions
 
-Security fixes are provided for the latest published major version of Floun. Maintainers may issue fixes for an earlier release when migration cannot reasonably happen immediately.
+Security reports are accepted for the current `main` branch and the latest published major version. Before 3.0.0 is published, fixes target `main` and the current 3.0.0 release candidate.
 
-| Version | Supported |
-| ------- | --------- |
-| 3.x     | Yes       |
-| 2.x     | No        |
-| 1.x     | No        |
+| Version                 | Supported           |
+| ----------------------- | ------------------- |
+| 3.0.0 release candidate | Pre-release support |
+| 2.x                     | No                  |
+| 1.x                     | No                  |
 
 ## Reporting a vulnerability
 

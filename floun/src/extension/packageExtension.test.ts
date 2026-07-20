@@ -2,14 +2,20 @@ declare const process: { cwd: () => string };
 declare function require(moduleName: string): any;
 
 const { createHash } = require("crypto");
-const { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } = require("fs");
+const {
+  mkdtempSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} = require("fs");
 const { strFromU8, unzipSync } = require("fflate");
 const { tmpdir } = require("os");
 const { join } = require("path");
 const { pathToFileURL } = require("url");
 
 const packageModuleUrl = pathToFileURL(
-  join(process.cwd(), "scripts", "package-extension.mjs")
+  join(process.cwd(), "scripts", "package-extension.mjs"),
 ).href;
 
 test("packaging the same extension twice produces byte-identical versioned artifacts", async () => {
@@ -26,12 +32,18 @@ test("packaging the same extension twice produces byte-identical versioned artif
     writeFileSync(join(buildDir, "assets", "app.js"), "console.info('floun');");
 
     const first = packageExtension({ buildDir, releaseDir, version: "2.1.0" });
-    const firstHash = createHash("sha256").update(readFileSync(first.canonicalPath)).digest("hex");
+    const firstHash = createHash("sha256")
+      .update(readFileSync(first.canonicalPath))
+      .digest("hex");
     const second = packageExtension({ buildDir, releaseDir, version: "2.1.0" });
-    const secondHash = createHash("sha256").update(readFileSync(second.canonicalPath)).digest("hex");
+    const secondHash = createHash("sha256")
+      .update(readFileSync(second.canonicalPath))
+      .digest("hex");
 
     expect(secondHash).toBe(firstHash);
-    expect(readFileSync(second.aliasPath)).toEqual(readFileSync(second.canonicalPath));
+    expect(readFileSync(second.aliasPath)).toEqual(
+      readFileSync(second.canonicalPath),
+    );
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }
@@ -62,10 +74,19 @@ test("the packaged extension includes its open-source license and notice", async
         { sourcePath: noticePath, entryName: "NOTICE.txt" },
       ],
     });
-    const archive = unzipSync(new Uint8Array(readFileSync(result.canonicalPath)));
+    const archive = unzipSync(
+      new Uint8Array(readFileSync(result.canonicalPath)),
+    );
 
-    expect(strFromU8(archive["LICENSE.txt"])).toBe("Apache License Version 2.0");
-    expect(strFromU8(archive["NOTICE.txt"])).toBe("Floun Copyright 2026 Kryv Labs");
+    expect(strFromU8(archive["LICENSE.txt"])).toBe(
+      "Apache License Version 2.0",
+    );
+    expect(strFromU8(archive["NOTICE.txt"])).toBe(
+      "Floun Copyright 2026 Kryv Labs",
+    );
+    expect(strFromU8(archive["THIRD_PARTY_NOTICES.txt"])).toContain(
+      "@kryv/teal@0.3.0",
+    );
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
   }

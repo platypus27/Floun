@@ -18,6 +18,8 @@ test("the repository exposes a complete open-source contributor contract", () =>
   expect(license).toContain("Apache License");
   expect(license).toContain("Version 2.0");
   expect(readRepoFile("TRADEMARKS.md")).toMatch(/Floun.*Kryv Labs/s);
+  expect(readRepoFile("TRADEMARKS.md")).toContain("floun/public/icons/");
+  expect(readRepoFile("TRADEMARKS.md")).toContain("docs/store/assets/");
   expect(readRepoFile("CODE_OF_CONDUCT.md")).toContain("Contributor Covenant");
   expect(readRepoFile("SUPPORT.md")).toContain("GitHub Discussions");
   expect(readRepoFile("GOVERNANCE.md")).toContain("Maintainers");
@@ -67,6 +69,7 @@ test("GitHub contribution and supply-chain automation is present", () => {
   const publishWorkflow = readRepoFile(".github/workflows/release.yml");
   expect(publishWorkflow).toContain("sha256sum");
   expect(publishWorkflow).toContain("gh release create");
+  expect(publishWorkflow).toContain("verification.verified");
   expect(releaseWorkflow).toContain("timeout-minutes:");
   expect(releaseWorkflow).toContain("cancel-in-progress: true");
 });
