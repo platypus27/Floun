@@ -3,6 +3,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { extname, dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { strFromU8, unzipSync } from "fflate";
+import { generateThirdPartyNotices } from "./generate-third-party-notices.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = dirname(scriptDir);
@@ -341,18 +342,11 @@ export function validateReleaseArtifact({
       "Release artifact must include the Floun attribution notice.",
     );
   }
-  for (const dependency of [
-    "@kryv/teal@",
-    "lucide-react@",
-    "pdf-lib@",
-    "react@",
-    "react-dom@",
-  ]) {
-    if (!thirdPartyNotices.includes(dependency)) {
-      throw new Error(
-        `Release artifact third-party notices are missing ${dependency}`,
-      );
-    }
+  const expectedThirdPartyNotices = generateThirdPartyNotices({ projectRoot });
+  if (thirdPartyNotices !== expectedThirdPartyNotices) {
+    throw new Error(
+      "Release artifact third-party notices do not match deterministic production dependency output.",
+    );
   }
   assertPackagedManifestKeysAreExpected(manifest);
   if (manifest.manifest_version !== 3)

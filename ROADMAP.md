@@ -7,7 +7,7 @@ This roadmap describes intended direction, not a delivery guarantee. Accepted wo
 - Publish and monitor the Floun 3 Chrome Web Store release.
 - Expand authoritative cryptography-rule coverage without overstating browser-visible evidence.
 - Improve real-browser regression coverage for popup accessibility and partial adapter failures.
-- Add release automation for signed tags, checksums, and GitHub Release artifacts.
+- Configure required status checks, secret protection, and staged Chrome Web Store rollout for official releases.
 - Establish public triage and maintenance rhythms as outside contributions arrive.
 
 ## Later opportunities

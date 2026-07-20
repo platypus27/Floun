@@ -73,6 +73,10 @@ test("release artifact check requires open-source license and notice entries", (
   expect(script).toContain(
     "Release artifact must include the Floun attribution notice.",
   );
+  expect(script).toContain("generateThirdPartyNotices");
+  expect(script).toContain(
+    "third-party notices do not match deterministic production dependency output",
+  );
 });
 
 test("release artifact check rejects remote or data packaged references", () => {

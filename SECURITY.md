@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Security reports are accepted for the current `main` branch and the latest published major version. Before 3.0.0 is published, fixes target `main` and the current 3.0.0 release candidate.
+Security reports are accepted for the current `main` branch and every version explicitly marked as supported below. Before 3.0.0 is published, fixes target `main` and the current 3.0.0 release candidate.
 
 | Version                 | Supported           |
 | ----------------------- | ------------------- |
