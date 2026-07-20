@@ -7,10 +7,10 @@ Status: release candidate verified locally on Linux on 2026-07-20. The candidate
 - Package path: `floun/release/floun-2.1.0.zip`
 - Alias package path: `floun/release/floun-2.1.zip`
 - Extension version: `2.1.0`
-- SHA-256: `52be7549c127d70cbda5eb1c2f8b227b1fe5a371d559f2dcadfb301cea9ab941`
-- Alias SHA-256: `52be7549c127d70cbda5eb1c2f8b227b1fe5a371d559f2dcadfb301cea9ab941`
-- Size bytes: `323271`
-- Two independent deterministic packaging runs produced matching SHA-256: `52be7549c127d70cbda5eb1c2f8b227b1fe5a371d559f2dcadfb301cea9ab941`
+- SHA-256: `3495bdab2f8e0b5ff0ab45c4bcca63e40c573b819e9db9b7bf20da168b71da17`
+- Alias SHA-256: `3495bdab2f8e0b5ff0ab45c4bcca63e40c573b819e9db9b7bf20da168b71da17`
+- Size bytes: `323303`
+- Two independent deterministic packaging runs produced matching SHA-256: `3495bdab2f8e0b5ff0ab45c4bcca63e40c573b819e9db9b7bf20da168b71da17`
 
 Required archive entries:
 
@@ -36,7 +36,7 @@ The artifact gate verified safe relative ZIP entries, an exact MV3 manifest sche
 | Check | Result | Evidence |
 | --- | --- | --- |
 | `npm ci` | Pass | 293 packages installed from the lockfile; npm reported zero vulnerabilities. |
-| `npm run release:check` | Pass | 32 test files and 116 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
+| `npm run release:check` | Pass | 32 test files and 117 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
 | `npm run release:artifact` | Pass | Canonical and alias archives matched the recorded version, entries, size, and SHA-256. |
 | `npm run release:determinism` | Pass | Two clean package runs were byte-identical. |
 | `npm run store:check` | Pass | Required store documents and 128x128, 1280x800, and 440x280 PNG assets passed. |

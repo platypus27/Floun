@@ -26,6 +26,4 @@ jobs:
           cache: npm
           cache-dependency-path: floun/package-lock.json
       - run: npm ci
-      - run: npm run release:check
-      - run: npm run release:determinism
-      - run: npm run store:check
+      - run: npm run release:publish:check

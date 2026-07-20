@@ -112,15 +112,21 @@ export async function fetchTransportScan(
 
       if (data.status === "READY") {
         const certificate = normalizeCertificate(data);
-
-        return {
-          tls: { data: normalizeTls(data), meta: completeMeta() },
-          certificate: certificate
+        const certificateResult: ScanAdapterResult<CertificateScanData | null> = target.protocol === "https:"
+          ? certificate
             ? { data: certificate, meta: completeMeta() }
             : {
               data: null,
               meta: unavailableMeta("SSL Labs returned no usable leaf-certificate signature algorithm."),
-            },
+            }
+          : {
+            data: null,
+            meta: unavailableMeta("Certificate scan requires an HTTPS page."),
+          };
+
+        return {
+          tls: { data: normalizeTls(data), meta: completeMeta() },
+          certificate: certificateResult,
         };
       }
 
