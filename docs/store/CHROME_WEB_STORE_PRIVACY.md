@@ -10,19 +10,19 @@ Floun provides lightweight, on-demand crypto-readiness and migration signal scan
 
 `scripting`: Used to inject the page collector into the active tab after a user-initiated scan. There is no always-on content script.
 
-`https://api.ssllabs.com/*`: Used by the background service worker to request TLS analysis metadata for the scanned hostname.
+`storage`: Used for device-local extension storage of a user-owned DeepSeek API key and consent choice. The credential is not stored in Chrome Sync.
 
-`https://ssl-checker.io/*`: Used by the background service worker to request certificate metadata for the scanned hostname.
+`https://api.ssllabs.com/*`: Used by the background service worker to request TLS and leaf-certificate signature metadata for the scanned hostname.
 
-`https://api.deepseek.com/*`: Used by the optional AI report-drafting flow to send redacted report sections to DeepSeek V4 Flash. Not contacted unless the user has set `VITE_DEEPSEEK_API_KEY` in a local development build. The Chrome Web Store package is shipped without that key.
+`https://api.deepseek.com/*`: Used by optional AI report drafting. It is contacted only after the user supplies their own DeepSeek API key and explicitly consents in AI drafting. The store package contains no API key.
 
 ## Data Use Disclosure
 
-Floun processes the active tab URL locally to build scan target metadata, minimizing it to the tab origin before the target is sent to the background worker. When the user has configured a local `VITE_DEEPSEEK_API_KEY`, redacted report sections are sent to DeepSeek V4 Flash at `https://api.deepseek.com` for optional AI-drafted report text; the Chrome Web Store package does not ship with that key configured. This removes paths, credentials, query strings, and fragments. It also processes the active tab hostname, visible page metadata, bounded same-origin script text, sanitized same-origin script locations, and bounded browser-visible token candidates that match local heuristics. Token evidence is redacted before display in reports.
+Floun processes the active tab URL locally to build scan target metadata, minimizing it to the tab origin before it is sent to the background worker. This removes paths, credentials, query strings, and fragments. Floun also processes the active tab hostname, visible page metadata, bounded same-origin script text, sanitized same-origin script locations, and bounded browser-visible token candidates that match local heuristics. Token evidence is redacted before display and omitted from AI prompts.
 
-Floun sends the scanned hostname to SSL Labs and ssl-checker.io for TLS and certificate metadata. It does not sell user data, use it for advertising, or transfer raw token values to those services.
+Floun sends the scanned hostname to SSL Labs for TLS and certificate metadata. If the user supplies a DeepSeek API key and explicitly consents, Floun sends redacted report findings to DeepSeek when the user generates a report. It does not sell user data, use it for advertising, or transfer raw token values to either service.
 
-The Chrome Web Store package is built without `VITE_DEEPSEEK_API_KEY`. Optional DeepSeek report drafting is local-development only unless a later release adds explicit user-facing privacy coverage for it.
+The user-owned DeepSeek API key is stored in device-local extension storage and can be replaced or removed from AI drafting. It persists across popup closes, browser restarts, and extension updates, but is cleared when Floun is uninstalled. Without both a key and consent, Floun uses local fallback report text and makes no DeepSeek request.
 
 ## Remote Code Declaration
 

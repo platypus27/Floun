@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Floun",
-  "version": "2.1.0",
+  "version": "3.0.0",
   "description": "Lightweight crypto-readiness and migration signal scanner",
-  "permissions": ["activeTab", "scripting"],
+  "permissions": ["activeTab", "scripting", "storage"],
   "host_permissions": [
     "https://api.ssllabs.com/*",
-    "https://ssl-checker.io/*",
     "https://api.deepseek.com/*"
   ],
   "background": {

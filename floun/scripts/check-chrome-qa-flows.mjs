@@ -6,6 +6,7 @@ import {
   readFileSync,
   readdirSync,
   statSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import {
@@ -21,16 +22,15 @@ import { removeDirectoryWithRetries } from "./check-extension-load.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptDir, "..");
-const repoRoot = resolve(projectRoot, "..");
 const defaultExtensionPath = join(projectRoot, "build");
 const fixtureRoot = join(projectRoot, "fixtures");
 
-const requiredScenarioIds = ["fixture", "https", "http", "unsupported", "pdf"];
+const requiredScenarioIds = ["fixture", "https", "http", "unsupported", "pdf", "byok"];
 
 const fixtureRawTokens = [
-  "0123456789abcdef0123456789abcdef",
-  "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKL",
-  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJmbG91biJ9.c2lnbmF0dXJl",
+  ["0123456789abcdef", "0123456789abcdef"].join(""),
+  ["abcdefghijklmnopqr", "stuvwxyzABCDEFGHIJKL"].join(""),
+  ["eyJhbGciOiJIUzI1NiJ9", "eyJzdWIiOiJmbG91biJ9", "c2lnbmF0dXJl"].join("."),
   "v1_flounreleasecandidate20260605",
   "QABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890==",
 ];
@@ -166,6 +166,22 @@ class CdpClient {
     });
   }
 
+  async waitForEvent(method, timeoutMs = 30_000) {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const eventIndex = this.events.findIndex((event) => event.method === method);
+
+      if (eventIndex >= 0) {
+        return this.events.splice(eventIndex, 1)[0];
+      }
+
+      await sleep(25);
+    }
+
+    throw new Error(`${method} event timed out.`);
+  }
+
   close() {
     try {
       this.webSocket.close();
@@ -246,6 +262,12 @@ async function scanUrl({
   url,
   waitMs,
 }) {
+  const existingPopupTargets = (await fetchJson(`http://127.0.0.1:${port}/json/list`))
+    .filter(isFlounPopupTarget(extensionId));
+  for (const target of existingPopupTargets) {
+    await browserClient.send("Target.closeTarget", { targetId: target.id });
+  }
+  if (existingPopupTargets.length) await sleep(100);
   const createdTarget = await browserClient.send("Target.createTarget", {
     url,
     forTab: true,
@@ -260,7 +282,13 @@ async function scanUrl({
   });
   await sleep(1_000);
 
-  let popupTarget = await waitForTarget(port, isFlounPopupTarget(extensionId), 5_000);
+  let popupTarget = await waitForTarget(port, (target) => (
+    isFlounPopupTarget(extensionId)(target)
+  ), 5_000);
+
+  if (!popupTarget) {
+    popupTarget = await waitForTarget(port, isFlounPopupTarget(extensionId), 2_000);
+  }
 
   if (!popupTarget) {
     throw new Error(`${label}: popup target was not created.`);
@@ -278,16 +306,36 @@ async function scanUrl({
     const snapshotResult = await evaluateTarget(popupTarget, `({
       text: document.body.innerText,
       generate: Boolean(document.getElementById('generateReportBtn')),
-      error: /Error:/.test(document.body.innerText),
+      error: Boolean(document.querySelector('[data-scan-error="true"]')),
       warnings: Array.from(document.querySelectorAll('.scan-warnings li')).map((item) => item.textContent),
-      total: document.querySelector('.total-occurrences')?.textContent || '',
-      sections: Array.from(document.querySelectorAll('.results-dropdown summary')).map((item) => item.textContent),
+      total: document.querySelector('.total-occurrences')?.textContent.replace(/[^0-9]/g, '') || '',
+      sections: Array.from(document.querySelectorAll('.module-title > span:first-child')).map((item) => item.textContent + ' Results'),
     })`);
     snapshot = snapshotResult.result.value;
 
     if (snapshot.generate || snapshot.error) {
       break;
     }
+  }
+
+  if (snapshot?.generate && !snapshot.error) {
+    await evaluateTarget(popupTarget, `(() => {
+      document.querySelectorAll('.module-title').forEach((item) => {
+        const trigger = item.closest('button');
+        if (trigger?.getAttribute('aria-expanded') === 'false') trigger.click();
+      });
+      return true;
+    })()`);
+    await sleep(250);
+    const expandedSnapshot = await evaluateTarget(popupTarget, `({
+        text: document.body.innerText,
+        generate: Boolean(document.getElementById('generateReportBtn')),
+        error: Boolean(document.querySelector('[data-scan-error="true"]')),
+        warnings: Array.from(document.querySelectorAll('.scan-warnings li')).map((item) => item.textContent),
+        total: document.querySelector('.total-occurrences')?.textContent.replace(/[^0-9]/g, '') || '',
+        sections: Array.from(document.querySelectorAll('.module-title > span:first-child')).map((item) => item.textContent + ' Results'),
+      })`);
+    snapshot = expandedSnapshot.result.value;
   }
 
   return { popupTarget, snapshot };
@@ -316,17 +364,23 @@ function validateFixtureScan(snapshot) {
   );
 }
 
-function validateHttpsScan(snapshot) {
+export function validateHttpsScan(snapshot) {
+  const hasUnavailableTransportWarning = snapshot.warnings.some((warning) => (
+    warning.includes("TLS scan unavailable") || warning.includes("Certificate scan unavailable")
+  ));
+  const hasCertificateEvidence = snapshot.text.includes("Certificate uses ");
   const passed = Boolean(snapshot.generate) &&
     !snapshot.error &&
     snapshot.sections.includes("TLS Results") &&
-    snapshot.sections.includes("Certificates Results");
+    snapshot.sections.includes("Certificates Results") &&
+    !hasUnavailableTransportWarning &&
+    hasCertificateEvidence;
 
   return buildScenarioResult(
     "https",
     "Known HTTPS scan",
     passed,
-    `total=${snapshot.total}; warnings=${snapshot.warnings.join(" | ") || "none"}`
+    `total=${snapshot.total}; warnings=${snapshot.warnings.join(" | ") || "none"}; text=${snapshot.text.replace(/\s+/g, " ").trim().slice(0, 300)}`
   );
 }
 
@@ -360,6 +414,13 @@ function findDownloadedPdf(downloadDir) {
     .filter((name) => name.toLowerCase().endsWith(".pdf"))
     .map((name) => join(downloadDir, name))
     .find((path) => statSync(path).size > 0) || "";
+}
+
+function findDownloadedPdfs(downloadDir) {
+  return readdirSync(downloadDir)
+    .filter((name) => name.toLowerCase().endsWith(".pdf"))
+    .map((name) => join(downloadDir, name))
+    .filter((path) => statSync(path).size > 0);
 }
 
 async function generateFixtureReport({
@@ -396,6 +457,213 @@ function validatePdfReport(pdfResult) {
     passed,
     `file=${pdfResult.pdfPath.split(/[\\/]/).pop()}; size=${pdfResult.pdfBytes.length}; rawTokenLeaks=${pdfResult.leakedTokens.length}`
   );
+}
+
+async function capturePopupScreenshot(popupTarget, outputPath) {
+  const client = new CdpClient(popupTarget.webSocketDebuggerUrl);
+  await client.open();
+
+  try {
+    await client.send("Page.enable");
+    const metrics = await client.send("Page.getLayoutMetrics");
+    const viewport = metrics.cssVisualViewport || metrics.visualViewport;
+    const screenshot = await client.send("Page.captureScreenshot", {
+      format: "png",
+      captureBeyondViewport: false,
+      clip: {
+        x: 0,
+        y: 0,
+        width: Math.min(viewport.clientWidth, 800),
+        height: Math.min(viewport.clientHeight, 800),
+        scale: 1,
+      },
+    });
+    writeFileSync(outputPath, Buffer.from(screenshot.data, "base64"));
+  } finally {
+    client.close();
+  }
+}
+
+async function verifyByokDrafting({
+  browserClient,
+  downloadDir,
+  extensionId,
+  fixtureUrl,
+  popupTarget,
+  port,
+}) {
+  let client = new CdpClient(popupTarget.webSocketDebuggerUrl);
+  const initialPdfs = new Map(findDownloadedPdfs(downloadDir).map((path) => [
+    path,
+    statSync(path).mtimeMs,
+  ]));
+  const fakeApiKey = "sk-floun-browser-qa";
+  const requests = [];
+  await client.open();
+
+  try {
+    await client.send("Runtime.evaluate", {
+      expression: "document.querySelector('button[aria-label=\"AI drafting\"]').click()",
+      userGesture: true,
+    });
+    await sleep(250);
+    await client.send("Runtime.evaluate", {
+      expression: `(() => {
+        const keyInput = document.getElementById('deepseekApiKey');
+        const consentInput = document.getElementById('deepseekConsent');
+        const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+        valueSetter.call(keyInput, '${fakeApiKey}');
+        keyInput.dispatchEvent(new Event('input', { bubbles: true }));
+        consentInput.click();
+        return true;
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+      userGesture: true,
+    });
+    await sleep(100);
+    await client.send("Runtime.evaluate", {
+      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'Save AI Settings').click()",
+      userGesture: true,
+    });
+    await sleep(250);
+    const savedSettings = await client.send("Runtime.evaluate", {
+      expression: "(async () => (await chrome.storage.local.get('floun.reportDrafting.deepseek.v2'))['floun.reportDrafting.deepseek.v2'])()",
+      awaitPromise: true,
+      returnByValue: true,
+    });
+
+    if (savedSettings.result.value?.apiKey !== fakeApiKey || savedSettings.result.value?.consented !== true) {
+      throw new Error("DeepSeek BYOK settings were not saved through the consent UI.");
+    }
+
+    client.close();
+    const reopenedScan = await scanUrl({
+      browserClient,
+      extensionId,
+      label: "Persisted DeepSeek BYOK fixture scan",
+      port,
+      url: fixtureUrl,
+      waitMs: 90_000,
+    });
+    client = new CdpClient(reopenedScan.popupTarget.webSocketDebuggerUrl);
+    await client.open();
+    await client.send("Runtime.evaluate", {
+      expression: "document.querySelector('button[aria-label=\"AI drafting\"]').click()",
+      userGesture: true,
+    });
+    await sleep(250);
+    const reopenedSettings = await client.send("Runtime.evaluate", {
+      expression: `({
+        text: document.body.innerText,
+        hasKeyInput: Boolean(document.getElementById('deepseekApiKey')),
+        hasFullKey: document.body.innerText.includes('${fakeApiKey}'),
+      })`,
+      returnByValue: true,
+    });
+    if (
+      !reopenedSettings.result.value?.text.includes("Saved on this device") ||
+      !reopenedSettings.result.value?.text.includes(`Key ending in ${fakeApiKey.slice(-4)}`) ||
+      reopenedSettings.result.value?.hasKeyInput ||
+      reopenedSettings.result.value?.hasFullKey
+    ) {
+      throw new Error("DeepSeek BYOK settings did not reopen as masked persisted status.");
+    }
+    if (process.env.FLOUN_BYOK_SCREENSHOT) {
+      await capturePopupScreenshot(
+        reopenedScan.popupTarget,
+        resolve(process.env.FLOUN_BYOK_SCREENSHOT)
+      );
+    }
+
+    await client.send("Fetch.enable", {
+      patterns: [{ urlPattern: "https://api.deepseek.com/*", requestStage: "Request" }],
+    });
+    await client.send("Runtime.evaluate", {
+      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'Generate Report').click()",
+      userGesture: true,
+    });
+
+    for (let index = 0; index < 7; index += 1) {
+      const event = await client.waitForEvent("Fetch.requestPaused", 30_000);
+      const request = event.params.request;
+      const authorization = Object.entries(request.headers)
+        .find(([name]) => name.toLowerCase() === "authorization")?.[1];
+
+      if (authorization !== `Bearer ${fakeApiKey}`) {
+        throw new Error("DeepSeek BYOK request did not use the user-owned API key.");
+      }
+      const leakedTokens = fixtureRawTokens.filter((token) => request.postData?.includes(token));
+      if (leakedTokens.length) {
+        throw new Error(`DeepSeek BYOK request leaked raw fixture tokens: ${leakedTokens.join(", ")}`);
+      }
+      requests.push(request);
+      await client.send("Fetch.fulfillRequest", {
+        requestId: event.params.requestId,
+        responseCode: 200,
+        responseHeaders: [{ name: "Content-Type", value: "application/json" }],
+        body: Buffer.from(JSON.stringify({
+          choices: [{ message: { content: `Verified redacted section ${index + 1}.` } }],
+        })).toString("base64"),
+      });
+    }
+
+    let generatedPdf = "";
+    for (let attempt = 0; attempt < 160; attempt += 1) {
+      await sleep(500);
+      generatedPdf = findDownloadedPdfs(downloadDir).find((path) => (
+        !initialPdfs.has(path) || statSync(path).mtimeMs > initialPdfs.get(path)
+      )) || "";
+      if (generatedPdf) break;
+    }
+    if (!generatedPdf) throw new Error("DeepSeek BYOK report PDF was not downloaded.");
+
+    const rawTokenLeaks = findRawTokenLeaks(readFileSync(generatedPdf));
+    if (rawTokenLeaks.length) {
+      throw new Error(`DeepSeek BYOK PDF leaked raw fixture tokens: ${rawTokenLeaks.join(", ")}`);
+    }
+
+    await client.send("Runtime.evaluate", {
+      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'Remove Key').click()",
+      userGesture: true,
+    });
+    await sleep(250);
+    const removedSettings = await client.send("Runtime.evaluate", {
+      expression: `(async () => ({
+        saved: (await chrome.storage.local.get('floun.reportDrafting.deepseek.v2'))['floun.reportDrafting.deepseek.v2'],
+        savedStatus: (await chrome.storage.local.get('floun.reportDrafting.deepseek.status.v2'))['floun.reportDrafting.deepseek.status.v2'],
+        deleted: (await chrome.storage.local.get('floun.reportDrafting.deepseek.deleted.v2'))['floun.reportDrafting.deepseek.deleted.v2'],
+        hasKeyInput: Boolean(document.getElementById('deepseekApiKey')),
+      }))()`,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+    if (
+      removedSettings.result.value?.saved !== undefined ||
+      removedSettings.result.value?.savedStatus !== undefined ||
+      removedSettings.result.value?.deleted !== true ||
+      !removedSettings.result.value?.hasKeyInput
+    ) {
+      throw new Error("DeepSeek BYOK settings were not removed through the persisted settings UI.");
+    }
+
+    return buildScenarioResult(
+      "byok",
+      "Persistent DeepSeek BYOK consent",
+      requests.length === 7,
+      `persistedAfterReopen=true; removedThroughUi=true; redactedRequests=${requests.length}; rawTokenLeaks=${rawTokenLeaks.length}`
+    );
+  } finally {
+    try {
+      await client.send("Runtime.evaluate", {
+        expression: "chrome.storage.local.remove(['floun.reportDrafting.deepseek.v2', 'floun.reportDrafting.deepseek.status.v2', 'floun.reportDrafting.deepseek.deleted.v2'])",
+        awaitPromise: true,
+      });
+    } catch {
+      // Best-effort cleanup of the isolated QA profile.
+    }
+    client.close();
+  }
 }
 
 function killBrowserProfileProcesses(profile, child) {
@@ -490,6 +758,9 @@ async function runChromeQaFlows({
       waitMs: 150_000,
     });
     results.push(validateHttpsScan(httpsScan.snapshot));
+    if (process.env.FLOUN_POPUP_SCREENSHOT) {
+      await capturePopupScreenshot(httpsScan.popupTarget, resolve(process.env.FLOUN_POPUP_SCREENSHOT));
+    }
 
     const httpScan = await scanUrl({
       browserClient,
@@ -510,6 +781,23 @@ async function runChromeQaFlows({
       waitMs: 30_000,
     });
     results.push(validateUnsupportedScan(unsupportedScan.snapshot));
+
+    const byokFixtureScan = await scanUrl({
+      browserClient,
+      extensionId: flounExtension.id,
+      label: "DeepSeek BYOK fixture scan",
+      port,
+      url: fixtureUrl,
+      waitMs: 90_000,
+    });
+    results.push(await verifyByokDrafting({
+      browserClient,
+      downloadDir,
+      extensionId: flounExtension.id,
+      fixtureUrl,
+      popupTarget: byokFixtureScan.popupTarget,
+      port,
+    }));
 
     assertRequiredScenarioResults(results);
 

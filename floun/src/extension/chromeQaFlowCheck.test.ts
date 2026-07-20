@@ -43,6 +43,12 @@ const passingResults = [
     passed: true,
     evidence: "No raw token values found.",
   },
+  {
+    id: "byok",
+    label: "DeepSeek BYOK consent",
+    passed: true,
+    evidence: "Consent-gated redacted requests verified.",
+  },
 ];
 
 test("findRawTokenLeaks returns only token values present in PDF bytes", async () => {
@@ -62,15 +68,38 @@ test("assertRequiredScenarioResults rejects missing or failed scenarios", async 
   const { assertRequiredScenarioResults } = await loadChromeQaFlowCheckModule();
 
   expect(() => assertRequiredScenarioResults(passingResults.slice(1))).toThrow(/fixture/i);
+  expect(() => assertRequiredScenarioResults(
+    passingResults.filter(result => result.id !== "byok")
+  )).toThrow(/byok/i);
   expect(() => assertRequiredScenarioResults([
-    ...passingResults.slice(0, -1),
-    {
-      id: "pdf",
-      label: "PDF redaction",
+    ...passingResults.map(result => result.id === "pdf" ? {
+      ...result,
       passed: false,
       evidence: "Raw token value leaked.",
-    },
+    } : result),
   ])).toThrow(/PDF redaction/);
+});
+
+test("known HTTPS QA requires usable certificate evidence", async () => {
+  const { validateHttpsScan } = await loadChromeQaFlowCheckModule();
+  const baseSnapshot = {
+    generate: true,
+    error: false,
+    sections: ["TLS Results", "Certificates Results"],
+    total: "8",
+  };
+
+  expect(validateHttpsScan({
+    ...baseSnapshot,
+    text: "Certificates Results No certificate signature algorithm found",
+    warnings: ["Certificate scan unavailable: Certificate lookup returned HTTP 404."],
+  }).passed).toBe(false);
+
+  expect(validateHttpsScan({
+    ...baseSnapshot,
+    text: "Certificates Results Certificate uses SHA256withRSA",
+    warnings: [],
+  }).passed).toBe(true);
 });
 
 export {};
