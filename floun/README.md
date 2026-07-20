@@ -1,77 +1,46 @@
-# Floun Extension
+# Floun extension package
 
-Floun is a lightweight Chrome extension popup for crypto-readiness and migration signals. It scans the active tab for visible JavaScript, token, TLS, and certificate indicators, summarizes findings, and can generate a redacted PDF report.
+This directory contains the Floun Manifest V3 extension application. Start with the repository [README](../README.md) for product, installation, privacy, contribution, and governance information. See [Architecture](../docs/ARCHITECTURE.md) for runtime boundaries and data flow.
 
-## Development
+## Setup
+
+Use Node.js 22 or newer.
 
 ```bash
-npm install
+npm ci
 npm run release:check
 ```
 
-The production extension is emitted to `build/`.
+The production extension is built into `build/`. Build output, local environment files, and release ZIPs are intentionally ignored.
 
-## Release Candidate Packaging
+## Commands
 
-```bash
-npm run package:extension
-```
+| Command                         | Purpose                                                                     |
+| ------------------------------- | --------------------------------------------------------------------------- |
+| `npm run start`                 | Run Vite for local UI development.                                          |
+| `npm run test`                  | Run the Vitest suite once.                                                  |
+| `npm run lint`                  | Run ESLint.                                                                 |
+| `npm run typecheck`             | Run TypeScript without emitting files.                                      |
+| `npm run build`                 | Build the production extension.                                             |
+| `npm run release:check`         | Run tests, lint, build, production audit, typecheck, and worker validation. |
+| `npm run release:ready`         | Build, package, validate, reproduce, and check store assets.                |
+| `npm run qa:chrome:flows`       | Drive real Chrome popup, scan, PDF, error, and BYOK flows.                  |
+| `npm run release:publish:check` | Run the complete local publication gate.                                    |
 
-The package command runs the full release check, then writes `release/floun-2.0.0.zip` and the byte-identical alias `release/floun-2.0.zip`.
-
-To verify the package artifact and Chrome Web Store prep material:
-
-```bash
-npm run release:ready
-```
-
-For manual QA, serve the HTTP fixture:
+## Safe fixture
 
 ```bash
 npm run fixture:server
 ```
 
-Then scan `http://127.0.0.1:4174/crypto-readiness.html`.
+Scan `http://127.0.0.1:4174/crypto-readiness.html`. The fixture contains synthetic signals only. Do not add real credentials, API keys, raw user tokens, or private browsing data.
 
-## Optional DeepSeek Report Text
+## Package boundaries
 
-PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted report sections, copy `.env.example` to `.env.local` and set:
+- `src/extension/` contains typed extension protocols, the background worker, QA contracts, and packaging contracts.
+- `src/components/` contains analysis, redaction, report, and token-heuristic modules.
+- `src/App.tsx` is the Teal popup composition.
+- `public/manifest.json` is the source Manifest V3 contract.
+- `scripts/` contains release, store, artifact, determinism, and real-Chrome verifiers.
 
-```bash
-VITE_DEEPSEEK_API_KEY=your-deepseek-key-here
-```
-
-Do not commit `.env.local` or API key files.
-
-## Current Modules
-
-- `src/App.tsx` coordinates popup state, active-tab scanning, registry-derived sections, and report generation.
-- `src/extension/scanProtocol.ts` owns scan request/response builders, action constants, and runtime guards.
-- `src/extension/scanClient.ts` sends popup scan requests through the shared scan protocol.
-- `src/components/analysisFinding.ts` defines the shared findings interface and summary logic.
-- `src/components/analysisModules.ts` defines the JavaScript, Tokens, TLS, and Certificates analysis registry.
-- `src/components/cryptoRules.ts` defines the versioned cryptography rule catalogue, including rule status, rationale, limitations, and references.
-- `src/components/*analysis.tsx` modules turn JavaScript, token, TLS, and certificate scan payloads into structured findings.
-- `src/components/sessiontokenanalysis/tokenCheckRegistry.ts` coordinates single-token and batch-token checks.
-- `src/components/findingUiSerializers.ts`, `src/components/reportgen/findingSerializers.ts`, and `src/components/evidenceRedaction.ts` own UI/report formatting and evidence redaction policy.
-- `src/components/reportgen/reportDocument.ts` builds redacted report documents for AI prompts and PDF rendering.
-- `src/components/reportgen/*` builds redacted report content and writes the PDF.
-- `src/extension/background/*` receives direct popup scan requests, performs active-tab page injection on demand, runs TLS/certificate API calls, and normalizes provider output into scan facts.
-
-## Scan Scope
-
-Findings use `Safe`, `Review`, `Vulnerable`, and `Info` severities. Classical or unclassified TLS/certificate cryptography is reported as `Review` for migration planning; `Vulnerable` is reserved for known weak or deprecated signals such as MD5, SHA-1, DES, 3DES, and RC4.
-
-## Verification
-
-The baseline checks are:
-
-```bash
-npm test
-npm run build
-npm run audit:prod
-npm run typecheck
-npm run check:worker
-```
-
-The project uses Vite for the popup build and Vitest for unit tests. Production dependencies currently audit clean with `npm audit --omit=dev`.
+Read [CONTRIBUTING.md](../CONTRIBUTING.md) before submitting a change and report vulnerabilities according to [SECURITY.md](../SECURITY.md).

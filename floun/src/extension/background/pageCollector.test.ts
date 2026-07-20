@@ -43,3 +43,20 @@ test("caps token count and token length before returning page scan data", async 
   expect(result.tokens[0]).toHaveLength(512);
   expect(result.truncated).toBe(true);
 });
+
+test("keeps combined script text within the extension message budget", async () => {
+  document.body.innerHTML = Array.from({ length: 20 }, () => (
+    `<script>${"A".repeat(50_000)}</script>`
+  )).join("");
+
+  const result = await collectPageScan(window.location.origin);
+
+  expect("error" in result).toBe(false);
+  if ("error" in result) throw new Error(result.error);
+
+  const totalScriptCharacters = result.jsScripts.reduce<number>((total, script) => (
+    total + (script as { content: string }).content.length
+  ), 0);
+  expect(totalScriptCharacters).toBeLessThanOrEqual(500_000);
+  expect(result.truncated).toBe(true);
+});

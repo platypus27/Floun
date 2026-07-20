@@ -1,0 +1,38 @@
+name: Feature request
+description: Propose a focused improvement to Floun.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and discussions.
+          required: true
+        - label: This request fits Floun's crypto-readiness and migration-planning purpose.
+          required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user problem before proposing a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe observable behavior and how success could be verified.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Security, privacy, or permission impact
+      description: State whether the request changes page access, storage, external services, or user data handling.

@@ -72,16 +72,33 @@ test("createReport passes redacted fallback report content to PDF generation", a
 });
 
 test("createReport sends redacted findings to DeepSeek prompts when local AI drafting is configured", async () => {
+  const settings = { apiKey: "sk-user-owned-key", consented: true };
   vi.mocked(hasDeepseekApiKey).mockReturnValue(true);
   vi.mocked(generateChatMessage).mockResolvedValue("generated section");
 
-  await createReport(moduleResults);
+  await createReport(moduleResults, settings);
 
   expect(generateChatMessage).toHaveBeenCalled();
+  expect(hasDeepseekApiKey).toHaveBeenCalledWith(settings);
+  expect(generateChatMessage).toHaveBeenCalledWith(expect.any(String), settings);
 
   const prompts = vi.mocked(generateChatMessage).mock.calls.map(([prompt]) => prompt);
 
   expect(prompts.some(prompt => prompt.includes(omittedEvidenceNotice))).toBe(true);
   expect(prompts.join("\n")).not.toContain(rawToken);
   expect(generatePDFReport).toHaveBeenCalledTimes(1);
+});
+
+test("createReport falls back to local sections when DeepSeek drafting fails", async () => {
+  const settings = { apiKey: "sk-user-owned-key", consented: true };
+  vi.mocked(hasDeepseekApiKey).mockReturnValue(true);
+  vi.mocked(generateChatMessage).mockRejectedValue(new Error("provider unavailable"));
+
+  await expect(createReport(moduleResults, settings)).resolves.toBeUndefined();
+
+  expect(generateChatMessage).toHaveBeenCalled();
+  expect(generatePDFReport).toHaveBeenCalledTimes(1);
+  const reportContent = vi.mocked(generatePDFReport).mock.calls[0][1];
+  expect(JSON.stringify(reportContent)).toContain("browser-extension scan results");
+  expect(JSON.stringify(reportContent)).not.toContain(rawToken);
 });

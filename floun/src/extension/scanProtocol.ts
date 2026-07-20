@@ -79,7 +79,7 @@ const isCertificateScanData = (value: unknown): boolean => (
   value === null ||
   (
     isRecord(value) &&
-    value.provider === "ssl-checker" &&
+    value.provider === "ssl-labs" &&
     typeof value.signatureAlgorithm === "string" &&
     value.signatureAlgorithm.trim().length > 0
   )

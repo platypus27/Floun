@@ -15,11 +15,13 @@ export function collectPageScan(pageOrigin: string): Promise<PageCollectorResult
   const maxTokenLength = 512;
   const maxScriptCount = 50;
   const maxScriptContentLength = 50_000;
+  const maxCombinedScriptContentLength = 500_000;
   const sessionTokenRegex = /^(?:[a-f0-9]{32,}|[a-zA-Z0-9_-]{36,}|eyJ[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+?\.[a-zA-Z0-9_-]+$|v\d+_[a-zA-Z0-9]+|Q[A-Za-z0-9+/=]{20,})$/;
   const getScanErrorMessage = (error: unknown): string => (
     error instanceof Error ? error.message : "Page scan failed."
   );
   let pagePayloadTruncated = false;
+  let remainingScriptContentLength = maxCombinedScriptContentLength;
 
   const capToken = (token: string): string => {
     if (token.length <= maxTokenLength) {
@@ -31,12 +33,11 @@ export function collectPageScan(pageOrigin: string): Promise<PageCollectorResult
   };
 
   const capScriptContent = (content: string): string => {
-    if (content.length <= maxScriptContentLength) {
-      return content;
-    }
-
-    pagePayloadTruncated = true;
-    return content.slice(0, maxScriptContentLength);
+    const allowedLength = Math.min(maxScriptContentLength, remainingScriptContentLength);
+    const cappedContent = content.slice(0, allowedLength);
+    remainingScriptContentLength -= cappedContent.length;
+    if (cappedContent.length !== content.length) pagePayloadTruncated = true;
+    return cappedContent;
   };
 
   const readStorageValues = (

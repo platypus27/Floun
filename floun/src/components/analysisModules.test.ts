@@ -18,7 +18,7 @@ const scanPayload: ScanPayload = {
     }],
   },
   certificates: {
-    provider: "ssl-checker",
+    provider: "ssl-labs",
     signatureAlgorithm: "sha256WithRSAEncryption",
   },
   scanMeta: {

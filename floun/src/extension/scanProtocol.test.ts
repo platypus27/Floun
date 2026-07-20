@@ -95,6 +95,16 @@ test("builds and validates scan responses", () => {
   expect(getScanResponseErrorMessage({ status: "unknown" })).toBe("Scan failed.");
 });
 
+test("accepts SSL Labs leaf-certificate evidence in successful scan responses", () => {
+  expect(isScanSuccessResponse({
+    status: "success",
+    data: {
+      ...payload,
+      certificates: { provider: "ssl-labs", signatureAlgorithm: "SHA256withRSA" },
+    },
+  })).toBe(true);
+});
+
 test("rejects malformed normalized scan facts in success responses", () => {
   expect(isScanSuccessResponse({
     status: "success",
@@ -108,7 +118,7 @@ test("rejects malformed normalized scan facts in success responses", () => {
     status: "success",
     data: {
       ...payload,
-      certificates: { provider: "ssl-checker", signatureAlgorithm: "" },
+      certificates: { provider: "ssl-labs", signatureAlgorithm: "" },
     },
   })).toBe(false);
 

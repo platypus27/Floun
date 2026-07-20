@@ -11,22 +11,59 @@ const target: ScanTarget = {
   url: "https://example.com",
 };
 
+test("uses one transport assessment for both TLS and certificate results", async () => {
+  const transport = vi.fn().mockResolvedValue({
+    tls: {
+      data: {
+        provider: "ssl-labs",
+        endpoints: [{ protocolVersions: ["1.3"], cipherSuites: ["TLS_AES_128_GCM_SHA256"] }],
+      },
+      meta: { status: "complete" },
+    },
+    certificate: {
+      data: { provider: "ssl-labs", signatureAlgorithm: "SHA256withRSA" },
+      meta: { status: "complete" },
+    },
+  });
+
+  const payload = await runWebsiteScan(target, {
+    page: vi.fn().mockResolvedValue({
+      data: { tokens: [], headers: {}, jsScripts: [] },
+      meta: { status: "complete" },
+    }),
+    transport,
+  });
+
+  expect(transport).toHaveBeenCalledTimes(1);
+  expect(payload).toMatchObject({
+    TLS: { provider: "ssl-labs" },
+    certificates: { provider: "ssl-labs", signatureAlgorithm: "SHA256withRSA" },
+    scanMeta: {
+      tls: { status: "complete" },
+      certificates: { status: "complete" },
+      warnings: [],
+    },
+  });
+});
+
 test("combines adapter data and warnings into a scan payload", async () => {
   const payload = await runWebsiteScan(target, {
     page: vi.fn().mockResolvedValue({
       data: { tokens: ["token"], headers: {}, jsScripts: [] },
       meta: { status: "complete" },
     }),
-    tls: vi.fn().mockResolvedValue({
-      data: {
-        provider: "ssl-labs",
-        endpoints: [{ protocolVersions: ["1.3"], cipherSuites: ["TLS_KYBER768"] }],
+    transport: vi.fn().mockResolvedValue({
+      tls: {
+        data: {
+          provider: "ssl-labs",
+          endpoints: [{ protocolVersions: ["1.3"], cipherSuites: ["TLS_KYBER768"] }],
+        },
+        meta: { status: "complete" },
       },
-      meta: { status: "complete" },
-    }),
-    certificates: vi.fn().mockResolvedValue({
-      data: { provider: "ssl-checker", signatureAlgorithm: "sha256WithRSAEncryption" },
-      meta: { status: "unavailable", message: "Certificate API unavailable" },
+      certificate: {
+        data: { provider: "ssl-labs", signatureAlgorithm: "sha256WithRSAEncryption" },
+        meta: { status: "unavailable", message: "Certificate API unavailable" },
+      },
     }),
   });
 
@@ -36,7 +73,7 @@ test("combines adapter data and warnings into a scan payload", async () => {
       provider: "ssl-labs",
       endpoints: [{ protocolVersions: ["1.3"], cipherSuites: ["TLS_KYBER768"] }],
     },
-    certificates: { provider: "ssl-checker", signatureAlgorithm: "sha256WithRSAEncryption" },
+    certificates: { provider: "ssl-labs", signatureAlgorithm: "sha256WithRSAEncryption" },
     scanMeta: {
       page: { status: "complete" },
       tls: { status: "complete" },

@@ -1,0 +1,66 @@
+name: Cryptography rule proposal
+description: Propose a new or materially changed detection rule.
+title: "rule: "
+labels:
+  - cryptography-rule
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Floun reports browser-visible migration signals. Proposals must avoid presenting heuristic evidence as a definitive vulnerability.
+  - type: input
+    id: algorithm
+    attributes:
+      label: Algorithm and context
+      placeholder: SHA-1 in a browser-visible certificate signature
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: Authoritative references
+      description: Link standards, specifications, or primary sources that support the classification.
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Proposed severity
+      options:
+        - Safe
+        - Review
+        - Vulnerable
+        - Info
+    validations:
+      required: true
+  - type: dropdown
+    id: confidence
+    attributes:
+      label: Proposed confidence
+      options:
+        - High
+        - Medium
+        - Low
+    validations:
+      required: true
+  - type: textarea
+    id: rationale
+    attributes:
+      label: Rationale and limitations
+      description: Explain what browser-visible evidence proves and what it cannot prove.
+    validations:
+      required: true
+  - type: textarea
+    id: false_positives
+    attributes:
+      label: False-positive analysis
+      description: Describe likely false positives, false negatives, and contextual ambiguity.
+    validations:
+      required: true
+  - type: textarea
+    id: fixtures
+    attributes:
+      label: Safe synthetic fixtures
+      description: Describe fixtures and expected findings without real credentials or user data.
+    validations:
+      required: true

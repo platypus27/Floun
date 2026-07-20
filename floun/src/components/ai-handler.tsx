@@ -15,18 +15,38 @@ import {
   flattenFindingGroups,
   reportSectionPrompts,
 } from "./reportgen/reportDocument";
+import type { ReportDraftingSettings } from "./reportgen/reportDraftingSettings";
 
-async function buildReportSections(groups: FindingGroups): Promise<ReportSections> {
+async function buildReportSections(
+  groups: FindingGroups,
+  settings: ReportDraftingSettings
+): Promise<ReportSections> {
   const findingsText = buildPromptFindingsText(groups);
   const allFindings = flattenFindingGroups(groups);
   const vulnerableCount = countVulnerableFindings(allFindings);
   const reviewCount = countFindingsBySeverity(allFindings, "Review");
 
-  if (!hasDeepseekApiKey()) {
+  if (!hasDeepseekApiKey(settings)) {
     return fallbackSections(findingsText, vulnerableCount, reviewCount);
   }
 
   const prompts = reportSectionPrompts(findingsText);
+  let draftedSections: string[];
+
+  try {
+    draftedSections = await Promise.all([
+      generateChatMessage(prompts.introduction, settings),
+      generateChatMessage(prompts.executiveSummary, settings),
+      generateChatMessage(prompts.vulnerabilityAnalysis, settings),
+      generateChatMessage(prompts.riskAssessment, settings),
+      generateChatMessage(prompts.recommendations, settings),
+      generateChatMessage(prompts.nextStep, settings),
+      generateChatMessage(prompts.conclusion, settings),
+    ]);
+  } catch {
+    return fallbackSections(findingsText, vulnerableCount, reviewCount);
+  }
+
   const [
     introduction,
     executiveSummary,
@@ -35,15 +55,7 @@ async function buildReportSections(groups: FindingGroups): Promise<ReportSection
     recommendations,
     nextStep,
     conclusion,
-  ] = await Promise.all([
-    generateChatMessage(prompts.introduction),
-    generateChatMessage(prompts.executiveSummary),
-    generateChatMessage(prompts.vulnerabilityAnalysis),
-    generateChatMessage(prompts.riskAssessment),
-    generateChatMessage(prompts.recommendations),
-    generateChatMessage(prompts.nextStep),
-    generateChatMessage(prompts.conclusion),
-  ]);
+  ] = draftedSections;
 
   return {
     introduction,
@@ -57,11 +69,12 @@ async function buildReportSections(groups: FindingGroups): Promise<ReportSection
 }
 
 export async function createReport(
-  moduleResults: AnalysisModuleResult[]
+  moduleResults: AnalysisModuleResult[],
+  settings: ReportDraftingSettings = { apiKey: "", consented: false }
 ) {
   const groups = buildFindingGroups(moduleResults);
   const groupLabels = buildFindingGroupLabels(moduleResults);
-  const sections = await buildReportSections(groups);
+  const sections = await buildReportSections(groups, settings);
   const { generatePDFReport } = await import("./reportgen/pdfService");
 
   await generatePDFReport({

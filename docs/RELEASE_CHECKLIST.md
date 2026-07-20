@@ -11,13 +11,14 @@ npm run release:check
 npm run package:extension
 ```
 
-`npm run package:extension` writes `release/floun-2.0.0.zip` and byte-identical alias `release/floun-2.0.zip` after the full release check passes.
+`npm run package:extension` writes `release/floun-3.0.0.zip` and byte-identical alias `release/floun-3.0.zip` after the full release check passes.
 `npm run release:ready` also verifies the release artifact and Chrome Web Store prep assets.
 
 Individual checks remain available when debugging:
 
 ```bash
 npm test
+npm run lint
 npm run build
 npm run audit:prod
 npm run typecheck
@@ -37,16 +38,18 @@ npm run qa:chrome:flows
 1. Run `npm run package:extension`.
 2. Optionally run `npm run qa:extension:load` with Chrome for Testing or Chromium to verify that the unpacked build can load through command-line QA.
 3. Run `npm run qa:chrome:flows` with Chrome for Testing or Chromium to verify scan and report flows through the extension action.
-4. Load `floun/build/` in `chrome://extensions/`, or unzip `floun/release/floun-2.0.0.zip` and load the unpacked output if a manual browser pass is still desired.
+4. Load `floun/build/` in `chrome://extensions/`, or unzip `floun/release/floun-3.0.0.zip` and load the unpacked output if a manual browser pass is still desired.
 5. Start the local HTTP fixture with `npm run fixture:server`.
 6. Open `http://127.0.0.1:4174/crypto-readiness.html`.
-7. Run Scan from the popup and confirm JavaScript, Token, TLS, and Certificate sections render without console errors.
+7. Run **Scan current site** from the popup and confirm JavaScript, Token, TLS, and Certificate accordions render without console errors.
 8. Confirm the HTTP fixture reports a certificate adapter warning rather than reintroducing `file://` support or broad host permissions.
-9. Scan a known HTTPS site and confirm TLS and certificate adapters report `complete`, `partial`, or `unavailable` states clearly.
+9. Scan a known HTTPS site and confirm both TLS and certificate findings contain usable SSL Labs evidence. An unavailable certificate result is a failure.
 10. Attempt unsupported extension/browser pages such as `chrome://extensions/` and confirm the popup shows a graceful error.
-11. Generate a PDF report without `VITE_DEEPSEEK_API_KEY` configured and confirm raw tokens are absent.
-12. If DeepSeek drafting is configured locally, confirm generated report text does not contain raw tokens, code snippets, hashes, or certificate bodies.
-13. Record the QA result in `docs/release/2.0.0/QA_EVIDENCE.md`.
+11. Generate a PDF report with DeepSeek disabled and confirm raw tokens are absent.
+12. In **AI drafting**, enter a user-owned key, review the disclosure, consent, close and reopen the popup, and confirm only masked saved-key status appears. Generate the report and confirm DeepSeek-generated text contains no raw tokens, code snippets, hashes, or certificate bodies.
+13. Remove the key through AI drafting and confirm local fallback reporting still works.
+14. Inspect the v3 logo, scan animation, dialog, warnings, result accordions, and narrow 400 px layout for clipping, overflow, or visual regressions.
+15. Record the QA result in `docs/release/3.0.0/QA_EVIDENCE.md`.
 
 ## Chrome Web Store Prep
 
