@@ -38,7 +38,7 @@ const forbiddenText = [
 ];
 const textExtensions = new Set([".css", ".html", ".js", ".json", ".txt"]);
 const allowedEntryExtensions = new Set([".css", ".html", ".ico", ".js", ".json", ".png", ".txt"]);
-const aiKeyPattern = /(?:AIza[0-9A-Za-z_-]{20,}|sk-[0-9A-Za-z_-]{20,})/;
+const aiKeyPattern = /(?<![0-9A-Za-z_-])(?:AIza[0-9A-Za-z_-]{20,}|sk-[0-9A-Za-z_-]{20,})/;
 const expectedPermissions = ["activeTab", "scripting", "storage"];
 const expectedHostPermissions = ["https://api.ssllabs.com/*", "https://api.deepseek.com/*"];
 const expectedExtensionPagesCsp = "script-src 'self'; object-src 'self';";
@@ -149,7 +149,7 @@ function assertPackagedManifestKeysAreExpected(manifest) {
   assertObjectKeys("Packaged manifest action default_icon", manifest.action.default_icon, expectedManifestIconKeys, "Packaged manifest action default_icon contains unexpected key");
 }
 
-function assertQaEvidenceMatchesArtifact(evidencePath, canonical, alias) {
+export function assertQaEvidenceMatchesArtifact(evidencePath, canonical, alias) {
   if (!existsSync(evidencePath)) {
     throw new Error(`QA evidence document is missing: ${evidencePath}`);
   }
@@ -175,6 +175,10 @@ function assertQaEvidenceMatchesArtifact(evidencePath, canonical, alias) {
   const evidenceEntries = [...entrySection.groups.entries.matchAll(/- `(?<entry>[^`]+)`/g)]
     .map((match) => match.groups.entry);
   assertStringSet("QA evidence archive entries", evidenceEntries, canonical.entries);
+}
+
+export function containsAiApiKey(content) {
+  return aiKeyPattern.test(content);
 }
 
 export function validateReleaseArtifact({ zipPath, expectedVersion = version }) {
@@ -247,7 +251,7 @@ export function validateReleaseArtifact({ zipPath, expectedVersion = version }) 
     if (extension === ".css" && /(?:@import\s+(?:url\()?\s*["']?\s*(?:(?:https?|data|chrome|mailto):|\/\/)|url\(\s*["']?\s*(?:(?:https?|data|chrome|mailto):|\/\/))/i.test(content)) {
       throw new Error(`Release artifact contains forbidden external CSS reference in ${entry}`);
     }
-    if (aiKeyPattern.test(content)) {
+    if (containsAiApiKey(content)) {
       throw new Error(`Release artifact contains an AI API-key-like value in ${entry}`);
     }
   }

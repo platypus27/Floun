@@ -2,6 +2,8 @@
 
 Floun is a lightweight Chrome extension popup for crypto-readiness and migration signals. It scans the active tab for visible JavaScript, token, TLS, and certificate indicators, summarizes findings, and can generate a redacted PDF report.
 
+The v3 popup is built with the published `@kryv/teal` design system and uses Teal components for controls, form semantics, alerts, cards, empty states, and expandable findings.
+
 ## Development
 
 ```bash
@@ -17,7 +19,7 @@ The production extension is emitted to `build/`.
 npm run package:extension
 ```
 
-The package command runs the full release check, then writes `release/floun-2.1.0.zip` and the byte-identical alias `release/floun-2.1.zip`.
+The package command runs the full release check, then writes `release/floun-3.0.0.zip` and the byte-identical alias `release/floun-3.0.zip`.
 
 To verify the package artifact and Chrome Web Store prep material:
 
@@ -35,7 +37,7 @@ Then scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
 ## Optional DeepSeek Report Text
 
-PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted sections, open **AI Settings** in the popup, enter a user-owned DeepSeek API key once, review the disclosure, and explicitly consent. The key is stored in device-local extension storage, persists across popup closes, browser restarts, and extension updates, and can be replaced or removed at any time. It is not synced between devices.
+PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted sections, open **AI drafting** in the popup, enter a user-owned DeepSeek API key once, review the disclosure, and explicitly consent. The key is stored in device-local extension storage, persists across popup closes, browser restarts, and extension updates, and can be replaced or removed at any time. It is not synced between devices.
 
 ## Current Modules
 

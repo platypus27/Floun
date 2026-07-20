@@ -1,39 +1,37 @@
-declare const process: { cwd: () => string; execPath: string };
+declare const process: { cwd: () => string };
 declare function require(moduleName: string): any;
 
-const { execFileSync } = require("child_process");
-const { mkdtempSync, readFileSync, rmSync, writeFileSync } = require("fs");
-const { tmpdir } = require("os");
+const { readFileSync } = require("fs");
 const { join } = require("path");
+const { pathToFileURL } = require("url");
 
 const projectRoot = process.cwd();
 const repoRoot = join(projectRoot, "..");
 const artifactScript = join(projectRoot, "scripts", "check-release-artifact.mjs");
-const qaEvidencePath = join(repoRoot, "docs", "release", "2.1.0", "QA_EVIDENCE.md");
+const packageJson = JSON.parse(readFileSync(join(projectRoot, "package.json"), "utf8"));
+const qaEvidencePath = join(repoRoot, "docs", "release", packageJson.version, "QA_EVIDENCE.md");
 
-test("release artifact check rejects stale QA evidence", () => {
-  const tempDir = mkdtempSync(join(tmpdir(), "floun-qa-evidence-"));
-  const staleEvidencePath = join(tempDir, "QA_EVIDENCE.md");
-  const staleEvidence = readFileSync(qaEvidencePath, "utf8")
-    .replace(/SHA-256: `[^`]+`/, "SHA-256: `stale`")
-    .replace(/Alias SHA-256: `[^`]+`/, "Alias SHA-256: `stale`")
-    .replace(/Size bytes: `\d+`/, "Size bytes: `1`");
+test("release artifact check rejects stale QA evidence", async () => {
+  const artifactChecks = await import(pathToFileURL(artifactScript).href);
+  const artifact = {
+    hash: "current-hash",
+    size: 123,
+    entries: ["manifest.json"],
+  };
 
-  writeFileSync(staleEvidencePath, staleEvidence, "utf8");
+  expect(() => artifactChecks.assertQaEvidenceMatchesArtifact(
+    qaEvidencePath,
+    artifact,
+    artifact
+  )).toThrow(/QA evidence/i);
+});
 
-  try {
-    expect(() => execFileSync(process.execPath, [
-      artifactScript,
-      "--qa-evidence",
-      staleEvidencePath,
-    ], {
-      encoding: "utf8",
-      stdio: "pipe",
-    })).toThrow(/QA evidence/i);
-  } finally {
-    rmSync(tempDir, { recursive: true, force: true });
-  }
-}, 30000);
+test("AI key detection ignores CSS mask identifiers but rejects standalone keys", async () => {
+  const artifactChecks = await import(pathToFileURL(artifactScript).href);
+
+  expect(artifactChecks.containsAiApiKey("mask-image-linear-gradient-mask-image")).toBe(false);
+  expect(artifactChecks.containsAiApiKey(`const key = 'sk-${"a".repeat(24)}'`)).toBe(true);
+});
 
 test("release artifact check enforces packaged manifest CSP", () => {
   const script = readFileSync(artifactScript, "utf8");

@@ -306,10 +306,10 @@ async function scanUrl({
     const snapshotResult = await evaluateTarget(popupTarget, `({
       text: document.body.innerText,
       generate: Boolean(document.getElementById('generateReportBtn')),
-      error: /Error:/.test(document.body.innerText),
+      error: Boolean(document.querySelector('[data-scan-error="true"]')),
       warnings: Array.from(document.querySelectorAll('.scan-warnings li')).map((item) => item.textContent),
-      total: document.querySelector('.total-occurrences')?.textContent || '',
-      sections: Array.from(document.querySelectorAll('.results-dropdown summary')).map((item) => item.textContent),
+      total: document.querySelector('.total-occurrences')?.textContent.replace(/[^0-9]/g, '') || '',
+      sections: Array.from(document.querySelectorAll('.module-title > span:first-child')).map((item) => item.textContent + ' Results'),
     })`);
     snapshot = snapshotResult.result.value;
 
@@ -319,17 +319,22 @@ async function scanUrl({
   }
 
   if (snapshot?.generate && !snapshot.error) {
-    const expandedSnapshot = await evaluateTarget(popupTarget, `(() => {
-      document.querySelectorAll('.results-dropdown').forEach((item) => { item.open = true; });
-      return {
+    await evaluateTarget(popupTarget, `(() => {
+      document.querySelectorAll('.module-title').forEach((item) => {
+        const trigger = item.closest('button');
+        if (trigger?.getAttribute('aria-expanded') === 'false') trigger.click();
+      });
+      return true;
+    })()`);
+    await sleep(250);
+    const expandedSnapshot = await evaluateTarget(popupTarget, `({
         text: document.body.innerText,
         generate: Boolean(document.getElementById('generateReportBtn')),
-        error: /Error:/.test(document.body.innerText),
+        error: Boolean(document.querySelector('[data-scan-error="true"]')),
         warnings: Array.from(document.querySelectorAll('.scan-warnings li')).map((item) => item.textContent),
-        total: document.querySelector('.total-occurrences')?.textContent || '',
-        sections: Array.from(document.querySelectorAll('.results-dropdown summary')).map((item) => item.textContent),
-      };
-    })()`);
+        total: document.querySelector('.total-occurrences')?.textContent.replace(/[^0-9]/g, '') || '',
+        sections: Array.from(document.querySelectorAll('.module-title > span:first-child')).map((item) => item.textContent + ' Results'),
+      })`);
     snapshot = expandedSnapshot.result.value;
   }
 
@@ -461,15 +466,15 @@ async function capturePopupScreenshot(popupTarget, outputPath) {
   try {
     await client.send("Page.enable");
     const metrics = await client.send("Page.getLayoutMetrics");
-    const contentSize = metrics.cssContentSize || metrics.contentSize;
+    const viewport = metrics.cssVisualViewport || metrics.visualViewport;
     const screenshot = await client.send("Page.captureScreenshot", {
       format: "png",
-      captureBeyondViewport: true,
+      captureBeyondViewport: false,
       clip: {
         x: 0,
         y: 0,
-        width: Math.min(contentSize.width, 800),
-        height: Math.min(contentSize.height, 1_200),
+        width: Math.min(viewport.clientWidth, 800),
+        height: Math.min(viewport.clientHeight, 800),
         scale: 1,
       },
     });
@@ -498,7 +503,7 @@ async function verifyByokDrafting({
 
   try {
     await client.send("Runtime.evaluate", {
-      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'AI Settings').click()",
+      expression: "document.querySelector('button[aria-label=\"AI drafting\"]').click()",
       userGesture: true,
     });
     await sleep(250);
@@ -544,7 +549,7 @@ async function verifyByokDrafting({
     client = new CdpClient(reopenedScan.popupTarget.webSocketDebuggerUrl);
     await client.open();
     await client.send("Runtime.evaluate", {
-      expression: "Array.from(document.querySelectorAll('button')).find((item) => item.textContent.trim() === 'AI Settings').click()",
+      expression: "document.querySelector('button[aria-label=\"AI drafting\"]').click()",
       userGesture: true,
     });
     await sleep(250);

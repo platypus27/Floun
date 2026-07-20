@@ -16,6 +16,8 @@ Lightweight crypto-readiness scanner with optional DeepSeek V4 Flash report draf
 
 Floun is a lightweight Chrome extension for crypto-readiness and migration planning. It scans the active HTTP or HTTPS tab on demand and reports browser-visible cryptography signals that may matter for post-quantum migration work.
 
+Floun 3 introduces a complete interface built with the Kryv Labs Teal design system, including accessible scan controls, status cards, warnings, settings, and expandable evidence.
+
 Floun focuses on practical inventory signals rather than broad vulnerability scanning. It highlights known weak or deprecated cryptography such as MD5, SHA-1, DES, 3DES, and RC4 as vulnerable findings, while treating classical or unclassified TLS and certificate algorithms as review items for migration planning.
 
 Core capabilities:
@@ -26,7 +28,8 @@ Core capabilities:
 - TLS and certificate metadata checks through explicit API host permissions.
 - Explainable findings with severity, confidence, rationale, limitations, recommendations, rule IDs, and references.
 - Redacted PDF report generation.
-- Optional DeepSeek V4 Flash-drafted report sections through a user-supplied DeepSeek API key, saved on this device and enabled only after explicit consent in AI Settings.
+- Complete popup interface built with the Kryv Labs Teal design system.
+- Optional DeepSeek V4 Flash-drafted report sections through a user-supplied DeepSeek API key, saved on this device and enabled only after explicit consent in AI drafting.
 
 Scope boundaries:
 
@@ -41,13 +44,13 @@ No account, paid service, or credentials are required to test the extension.
 
 Suggested review flow:
 
-1. Load the unpacked extension from `build/` or upload `release/floun-2.1.0.zip`.
-2. Open an HTTPS site and click Scan.
+1. Load the unpacked extension from `build/` or upload `release/floun-3.0.0.zip`.
+2. Open an HTTPS site and click **Scan current site**.
 3. Confirm findings and adapter status warnings render in the popup.
 4. Generate a PDF report and confirm raw token values are not exposed.
 5. Optional local fixture: serve `floun/fixtures/` with `npm run fixture:server` and scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
-The store package contains no API key. Optional DeepSeek drafting is off by default. Users provide their own key once per Chrome installation, review the in-product disclosure, and explicitly consent before any redacted report findings are sent to DeepSeek. The key is saved on this device, is not synced between devices, and can be replaced or removed from AI Settings.
+The store package contains no API key. Optional DeepSeek drafting is off by default. Users provide their own key once per Chrome installation, review the in-product disclosure, and explicitly consent before any redacted report findings are sent to DeepSeek. The key is saved on this device, is not synced between devices, and can be replaced or removed from AI drafting.
 
 ## Required Store Assets
 

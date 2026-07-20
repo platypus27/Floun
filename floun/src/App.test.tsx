@@ -54,7 +54,7 @@ test('shows masked status instead of repopulating a saved DeepSeek key', async (
   };
 
   render(<App />);
-  fireEvent.click(screen.getByRole('button', { name: /ai settings/i }));
+  fireEvent.click(screen.getByRole('button', { name: /ai drafting/i }));
 
   expect(await screen.findByText(/^saved on this device$/i)).toBeInTheDocument();
   expect(screen.getByText(/ending in 7x9z/i)).toBeInTheDocument();
@@ -74,7 +74,7 @@ test('replacing a saved key requires fresh consent and removal clears it', async
   };
 
   render(<App />);
-  fireEvent.click(screen.getByRole('button', { name: /ai settings/i }));
+  fireEvent.click(screen.getByRole('button', { name: /ai drafting/i }));
   await screen.findByText(/ending in 1234/i);
   fireEvent.click(screen.getByRole('button', { name: /replace key/i }));
 
@@ -114,17 +114,18 @@ test('a user can explicitly configure and consent to DeepSeek report drafting', 
   });
 
   render(<App />);
-  fireEvent.click(screen.getByRole('button', { name: /ai settings/i }));
+  fireEvent.click(screen.getByRole('button', { name: /ai drafting/i }));
 
-  expect(screen.getByText(/^When enabled, Floun sends redacted report findings to DeepSeek/i)).toBeInTheDocument();
+  expect(screen.getByText(/optionally send redacted report findings to DeepSeek/i)).toBeInTheDocument();
   fireEvent.change(await screen.findByLabelText(/deepseek api key/i), {
     target: { value: 'sk-user-owned-key' },
   });
   fireEvent.click(screen.getByLabelText(/i consent/i));
   fireEvent.click(screen.getByRole('button', { name: /save ai settings/i }));
   expect(await screen.findByText(/^saved on this device$/i)).toBeInTheDocument();
+  fireEvent.click(screen.getByRole('button', { name: /^close$/i }));
 
-  fireEvent.click(screen.getByRole('button', { name: /^scan$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /scan current site/i }));
   await screen.findByRole('button', { name: /generate report/i });
   fireEvent.click(screen.getByRole('button', { name: /generate report/i }));
 
@@ -136,12 +137,28 @@ test('a user can explicitly configure and consent to DeepSeek report drafting', 
   });
 });
 
-test('renders the Floun popup shell', () => {
+test('renders the Floun v3 scan workspace', async () => {
   render(<App />);
 
-  expect(screen.getByAltText(/floun logo/i)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /scan/i })).toBeInTheDocument();
+  await screen.findByText(/ready to inspect this site/i);
+  expect(screen.getByRole('heading', { name: 'Floun' })).toBeInTheDocument();
+  expect(screen.getByText(/crypto readiness, clearly mapped/i)).toBeInTheDocument();
+  expect(screen.getByAltText(/floun v3 mark/i)).toHaveAttribute('src', 'icons/floun.png');
+  expect(screen.getByRole('button', { name: /scan current site/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /ai drafting/i })).toBeInTheDocument();
+  expect(screen.getByText(/ready to inspect this site/i)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /generate report/i })).not.toBeInTheDocument();
+});
+
+test('announces a branded scanning state while work is in progress', async () => {
+  vi.mocked(scanActiveTab).mockReturnValue(new Promise(() => undefined));
+
+  render(<App />);
+  await screen.findByText(/ready to inspect this site/i);
+  fireEvent.click(screen.getByRole('button', { name: /scan current site/i }));
+
+  expect(await screen.findByRole('status', { name: /scanning current site/i })).toBeInTheDocument();
+  expect(screen.getByAltText(/floun scanning mark/i)).toBeInTheDocument();
 });
 
 test('renders expandable finding rows with structured explanation fields', async () => {
@@ -167,20 +184,22 @@ test('renders expandable finding rows with structured explanation fields', async
   vi.mocked(scanActiveTab).mockResolvedValue(payload);
 
   render(<App />);
-  fireEvent.click(screen.getByRole('button', { name: /scan/i }));
+  fireEvent.click(screen.getByRole('button', { name: /scan current site/i }));
 
+  const javascriptSection = await screen.findByRole('button', { name: /javascript/i });
+  fireEvent.click(javascriptSection);
   const findingTitle = await screen.findByText('Found MD5 Hashing');
-  expect(screen.getAllByText('TLS Results')).toHaveLength(2);
+  expect(screen.getByRole('button', { name: /^tls\s*1$/i })).toBeInTheDocument();
   expect(screen.queryByText('Header Results')).not.toBeInTheDocument();
 
-  const findingSummary = findingTitle.closest('summary');
+  const findingSummary = findingTitle.closest('button');
 
   expect(findingSummary).toBeTruthy();
   fireEvent.click(findingSummary as HTMLElement);
   expect(screen.getByText(/MD5 is a known deprecated hash/)).toBeInTheDocument();
   expect(screen.getByText(/The match does not determine whether usage is security-sensitive/)).toBeInTheDocument();
   expect(screen.getByText(/Remove MD5/)).toBeInTheDocument();
-  expect(screen.getByText(/Status: Deprecated/)).toBeInTheDocument();
+  expect(screen.getByText(/Status Deprecated/)).toBeInTheDocument();
 
   const links = screen.getAllByRole('link', { name: /reference 1/i });
   expect(links[0]).toHaveAttribute('target', '_blank');

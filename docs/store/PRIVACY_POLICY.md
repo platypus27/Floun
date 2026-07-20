@@ -2,7 +2,7 @@
 
 Effective date: July 20, 2026
 
-Floun is a lightweight Chrome extension for crypto-readiness and migration signal scanning. It runs on demand when the user clicks Scan.
+Floun is a lightweight Chrome extension for crypto-readiness and migration signal scanning. It runs on demand when the user clicks **Scan current site**.
 
 ## Data Floun Processes
 
@@ -14,13 +14,13 @@ Token findings are redacted before being displayed in reports. Floun does not in
 
 Floun sends the scanned hostname to SSL Labs to retrieve TLS and leaf-certificate signature metadata. These requests are limited to the explicit host permission in the extension manifest.
 
-If the user supplies their own DeepSeek API key and explicitly consents in AI Settings, Floun sends redacted report findings to DeepSeek V4 Flash at `https://api.deepseek.com` when the user generates a report. Raw token evidence is omitted from those requests.
+If the user supplies their own DeepSeek API key and explicitly consents in AI drafting, Floun sends redacted report findings to DeepSeek V4 Flash at `https://api.deepseek.com` when the user generates a report. Raw token evidence is omitted from those requests.
 
 The Chrome Web Store package contains no API key. Without both a user-owned key and consent, Floun uses local fallback report text and makes no request to DeepSeek.
 
 ## Storage and Retention
 
-Floun keeps scan results in the extension popup flow while the user is using it. Generated PDF reports are saved only when the user chooses to create them. A user-owned DeepSeek API key and consent choice are stored in device-local extension storage. They persist across popup closes, browser restarts, and extension updates until the user removes them in AI Settings or the extension is uninstalled. The key is not stored in Chrome Sync.
+Floun keeps scan results in the extension popup flow while the user is using it. Generated PDF reports are saved only when the user chooses to create them. A user-owned DeepSeek API key and consent choice are stored in device-local extension storage. They persist across popup closes, browser restarts, and extension updates until the user removes them in AI drafting or the extension is uninstalled. The key is not stored in Chrome Sync.
 
 Floun does not sell user data, use it for advertising, or share raw token values with third parties.
 
