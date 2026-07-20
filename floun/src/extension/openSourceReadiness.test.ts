@@ -60,8 +60,13 @@ test("GitHub contribution and supply-chain automation is present", () => {
   expect(pullRequestTemplate).toContain("npm run release:check");
   expect(readRepoFile(".github/CODEOWNERS")).toContain("* @platypus27");
   expect(readRepoFile(".github/dependabot.yml")).toContain("github-actions");
-  expect(readRepoFile(".github/workflows/codeql.yml")).toContain(
-    "security-events: write",
+  const codeqlWorkflow = readRepoFile(".github/workflows/codeql.yml");
+  expect(codeqlWorkflow).toContain("security-events: write");
+  expect(codeqlWorkflow).toContain(
+    "github/codeql-action/init@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1",
+  );
+  expect(codeqlWorkflow).toContain(
+    "github/codeql-action/analyze@7188fc363630916deb702c7fdcf4e481b751f97a # v4.37.1",
   );
   expect(readRepoFile(".github/workflows/dependency-review.yml")).toContain(
     "dependency-review-action",
