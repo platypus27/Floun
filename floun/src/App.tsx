@@ -120,6 +120,7 @@ const AnalysisSection: React.FC<{ moduleResult: AnalysisModuleResult }> = ({ mod
       <div><span>Safe</span><strong>{moduleResult.summary.safe}</strong></div>
       <div><span>Review</span><strong>{moduleResult.summary.review}</strong></div>
       <div><span>At risk</span><strong>{moduleResult.summary.vulnerable}</strong></div>
+      <div><span>Info</span><strong>{moduleResult.summary.informational}</strong></div>
     </div>
     <FindingRows findings={moduleResult.findings} />
   </div>
@@ -289,10 +290,9 @@ const App: React.FC = () => {
     <div className="app-shell">
       <TopBar sticky={false} className="brand-bar">
         <TopBarBrand>
-          <img className="brand-mark" src="icons/floun.png" alt="Floun v3 mark" />
           <div className="brand-copy">
             <div className="brand-title-row">
-              <h1>Floun</h1>
+              <h1>floun</h1>
               <Badge variant="info">v3</Badge>
             </div>
             <p>Crypto readiness, clearly mapped.</p>

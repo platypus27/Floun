@@ -18,8 +18,8 @@ const requiredDocs = [
 
 const assets = [
   { label: "extension icon", path: join(projectRoot, "public", "icons", "icon_128.png"), width: 128, height: 128 },
-  { label: "store screenshot", path: join(storeAssetsRoot, "floun-store-screenshot-1280x800.png"), width: 1280, height: 800 },
-  { label: "small promotional image", path: join(storeAssetsRoot, "floun-small-promo-440x280.png"), width: 440, height: 280 },
+  { label: "store screenshot", path: join(storeAssetsRoot, "floun-store-screenshot-1280x800.png"), width: 1280, height: 800, opaque: true },
+  { label: "small promotional image", path: join(storeAssetsRoot, "floun-small-promo-440x280.png"), width: 440, height: 280, opaque: true },
 ];
 
 function readPngDimensions(path) {
@@ -28,7 +28,11 @@ function readPngDimensions(path) {
   if (signature !== "89504e470d0a1a0a" || bytes.subarray(12, 16).toString("ascii") !== "IHDR") {
     throw new Error(`Store asset must be a valid PNG: ${path}`);
   }
-  return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
+  return {
+    width: bytes.readUInt32BE(16),
+    height: bytes.readUInt32BE(20),
+    colorType: bytes.readUInt8(25),
+  };
 }
 
 export function verifyStoreReadiness() {
@@ -42,6 +46,9 @@ export function verifyStoreReadiness() {
     const dimensions = readPngDimensions(asset.path);
     if (dimensions.width !== asset.width || dimensions.height !== asset.height) {
       throw new Error(`${asset.label} must be ${asset.width}x${asset.height}, found ${dimensions.width}x${dimensions.height}: ${asset.path}`);
+    }
+    if (asset.opaque && dimensions.colorType !== 2) {
+      throw new Error(`${asset.label} must not contain an alpha channel: ${asset.path}`);
     }
   }
 

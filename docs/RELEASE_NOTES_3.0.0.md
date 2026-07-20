@@ -10,7 +10,7 @@ Floun 3 rebuilds the complete extension experience with the Kryv Labs Teal desig
 
 - Replaced hand-built popup controls and surfaces with published `@kryv/teal@0.3.0` components.
 - Introduced a compact 400 px scan workspace with a clearer primary action, readiness state, status badges, warnings, expandable evidence, and report action.
-- Added a new Floun cryptography-scanning brand mark and regenerated the extension icons.
+- Added a lowercase teal `floun` wordmark and regenerated the extension icons.
 - Replaced the swimming loader with a branded radar animation that respects reduced-motion preferences.
 - Moved AI drafting into an accessible Teal dialog with Teal fields, checkbox semantics, alerts, saved-key card, replacement flow, and removal action.
 - Preserved on-demand active-tab scanning, SSL Labs transport evidence, redacted PDF generation, DeepSeek consent, device-local key persistence, and deletion hardening.

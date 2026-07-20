@@ -7,17 +7,17 @@ Status: release candidate verified locally on Linux on 2026-07-20. The candidate
 - Package path: `floun/release/floun-3.0.0.zip`
 - Alias package path: `floun/release/floun-3.0.zip`
 - Extension version: `3.0.0`
-- SHA-256: `4b0f6a7a82579afa9c0ad342ce240f4eb5994636f761656c1bdb3415d490bda0`
-- Alias SHA-256: `4b0f6a7a82579afa9c0ad342ce240f4eb5994636f761656c1bdb3415d490bda0`
-- Size bytes: `408165`
-- Two independent deterministic packaging runs produced matching SHA-256: `4b0f6a7a82579afa9c0ad342ce240f4eb5994636f761656c1bdb3415d490bda0`
+- SHA-256: `5cb09462498682e6d2ee5c9a08ba85440209abc58f6a2dc551080913c0e09eb1`
+- Alias SHA-256: `5cb09462498682e6d2ee5c9a08ba85440209abc58f6a2dc551080913c0e09eb1`
+- Size bytes: `407713`
+- Two independent deterministic packaging runs produced matching SHA-256: `5cb09462498682e6d2ee5c9a08ba85440209abc58f6a2dc551080913c0e09eb1`
 
 Required archive entries:
 
-- `assets/ai-handler-CrIwuOcA.js`
-- `assets/index-Cg9HxsZy.css`
-- `assets/index-BjuZKfdP.js`
-- `assets/pdfService-C3MhUZCR.js`
+- `assets/ai-handler-CywFBx22.js`
+- `assets/index-CZUzaN4x.js`
+- `assets/index-DqUw9XTJ.css`
+- `assets/pdfService-gadytbjr.js`
 - `assets/reportDraftingSettings-BKincOJB.js`
 - `background.js`
 - `icons/favicon.ico`
@@ -36,7 +36,7 @@ The artifact gate verifies safe relative ZIP entries, an exact MV3 manifest sche
 | Check | Result | Evidence |
 | --- | --- | --- |
 | Teal dependency install | Pass | Installed published `@kryv/teal@0.3.0`; npm audited 355 packages with zero vulnerabilities. |
-| `npm run release:check` | Pass | 32 test files and 128 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
+| `npm run release:check` | Pass | 32 test files and 130 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
 | `npm run release:artifact` | Pass | Canonical and alias archives matched the recorded version, entries, size, and SHA-256. |
 | `npm run release:determinism` | Pass | Two clean package runs were byte-identical. |
 | `npm run store:check` | Pass | Required store documents and 128x128, 1280x800, and 440x280 PNG assets passed. |
@@ -55,7 +55,7 @@ These rows are backed by the Chrome DevTools Protocol QA run against the unpacke
 | Scan `https://www.cloudflare.com/` | Pass | Detected 95 signals, rendered TLS and certificate evidence from one SSL Labs assessment, and displayed page truncation in a Teal warning alert. |
 | Scan `http://example.com/` | Pass | Completed with explicit TLS and certificate unavailable warnings for the blacklisted host. |
 | Attempt unsupported page such as `chrome://extensions/` | Pass | Displayed the expected HTTP/HTTPS-only Teal danger alert without crashing the popup. |
-| Generate PDF report | Pass | Downloaded a 27,034-byte PDF; none of the five raw fixture token values appeared in the file. |
+| Generate PDF report | Pass | Downloaded a 27,035-byte PDF; none of the five raw fixture token values appeared in the file. |
 | Configure and clear DeepSeek BYOK with explicit consent | Pass | Saved the fake key only after consent, reopened the Teal dialog with masked status, sent seven redacted authenticated requests to the intercepted endpoint, generated a leak-free PDF, and removed the key through the UI. |
 | Store package built without AI key | Pass | Artifact secret scanning found no DeepSeek-style key, environment file, or build-time AI secret. |
 | Inspect v3 wordmark, animation, dialog, and narrow layout | Pass | Production screenshots confirmed the lowercase teal `floun` wordmark, 400 px layout, status cards, warning alert, centered AI dialog, masked key card, and button alignment without horizontal overflow or clipping. |

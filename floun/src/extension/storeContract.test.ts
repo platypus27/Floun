@@ -17,6 +17,7 @@ test("the v3 store contract matches the Teal UI and shipped BYOK behavior", () =
   const extensionReadme = readRepoFile("floun/README.md");
   const packageJson = JSON.parse(readRepoFile("floun/package.json"));
   const manifest = JSON.parse(readRepoFile("floun/public/manifest.json"));
+  const storeReadinessScript = readRepoFile("floun/scripts/check-store-readiness.mjs");
   const combined = [listing, privacyFields, privacyPolicy, releaseChecklist, rootReadme, extensionReadme].join("\n");
 
   expect(combined).not.toContain("floun-2.0.0.zip");
@@ -37,6 +38,7 @@ test("the v3 store contract matches the Teal UI and shipped BYOK behavior", () =
   expect(privacyPolicy).toMatch(/SSL Labs.*DeepSeek/s);
   expect(releaseChecklist).toContain("docs/release/3.0.0/QA_EVIDENCE.md");
   expect(listing).toMatch(/Teal design system/i);
+  expect(storeReadinessScript).toContain("must not contain an alpha channel");
 });
 
 export {};

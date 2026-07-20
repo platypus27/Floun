@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 280" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="440" height="280" viewBox="0 0 440 280" role="img" aria-labelledby="title description">
   <title id="title">Floun v3 Chrome Web Store promotional tile</title>
   <desc id="description">The teal Floun wordmark with the words Crypto readiness, clearly mapped.</desc>
-  <rect width="440" height="280" rx="24" fill="#eff6f4"/>
+  <rect width="440" height="280" fill="#eff6f4"/>
   <text x="42" y="102" fill="#006a6c" font-family="Plus Jakarta Sans, Manrope, Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="-2">floun</text>
   <rect x="180" y="70" width="47" height="24" rx="12" fill="#006a6c"/>
   <text x="203.5" y="87" fill="#ffffff" font-family="Plus Jakarta Sans, Manrope, Arial, sans-serif" font-size="13" font-weight="700" text-anchor="middle">v3</text>

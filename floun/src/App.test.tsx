@@ -141,13 +141,35 @@ test('renders the Floun v3 scan workspace', async () => {
   render(<App />);
 
   await screen.findByText(/ready to inspect this site/i);
-  expect(screen.getByRole('heading', { name: 'Floun' })).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: 'floun' })).toBeInTheDocument();
   expect(screen.getByText(/crypto readiness, clearly mapped/i)).toBeInTheDocument();
-  expect(screen.getByAltText(/floun v3 mark/i)).toHaveAttribute('src', 'icons/floun.png');
+  expect(screen.queryByAltText(/floun v3 mark/i)).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: /scan current site/i })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /ai drafting/i })).toBeInTheDocument();
   expect(screen.getByText(/ready to inspect this site/i)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /generate report/i })).not.toBeInTheDocument();
+});
+
+test('shows informational counts so module totals reconcile', async () => {
+  vi.mocked(scanActiveTab).mockResolvedValue({
+    jsScripts: [],
+    tokens: [],
+    headers: {},
+    TLS: null,
+    certificates: null,
+    scanMeta: {
+      page: { status: 'complete' },
+      tls: { status: 'unavailable', message: 'No TLS data.' },
+      certificates: { status: 'unavailable', message: 'No certificate data.' },
+      warnings: [],
+    },
+  });
+
+  render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: /scan current site/i }));
+  fireEvent.click(await screen.findByRole('button', { name: /^tokens\s*1$/i }));
+
+  expect(screen.getByLabelText(/tokens result counts/i)).toHaveTextContent('Info1');
 });
 
 test('announces a branded scanning state while work is in progress', async () => {
