@@ -1,4 +1,4 @@
-declare const process: { cwd: () => string };
+declare const process: { cwd: () => string; execPath: string };
 declare function require(moduleName: string): any;
 
 const { execFileSync } = require("child_process");
@@ -6,7 +6,7 @@ const { mkdtempSync, rmSync, writeFileSync } = require("fs");
 const { tmpdir } = require("os");
 const { dirname, join } = require("path");
 
-const publishReadinessScript = join(process.cwd(), "scripts", "check-publish-readiness.ps1");
+const publishReadinessScript = join(process.cwd(), "scripts", "check-publish-readiness.mjs");
 
 const manualQaScenarios = [
   "Load `floun/build/` in Chrome extensions",
@@ -15,16 +15,13 @@ const manualQaScenarios = [
   "Scan `http://example.com/`",
   "Attempt unsupported page such as `chrome://extensions/`",
   "Generate PDF report",
+  "Configure and clear DeepSeek BYOK with explicit consent",
   "Store package built without AI key",
 ];
 
 function runPublishReadinessCheck(extraArgs: string[] = []) {
   try {
-    const output = execFileSync("powershell", [
-      "-NoProfile",
-      "-ExecutionPolicy",
-      "Bypass",
-      "-File",
+    const output = execFileSync(process.execPath, [
       publishReadinessScript,
       ...extraArgs,
     ], {
@@ -63,7 +60,7 @@ function runWithQaEvidence(rows: Array<{ scenario: string; result: string; evide
   const evidencePath = writeQaEvidence(rows);
 
   try {
-    return runPublishReadinessCheck(["-QaEvidencePath", evidencePath]);
+    return runPublishReadinessCheck(["--qa-evidence", evidencePath]);
   } finally {
     rmSync(dirname(evidencePath), { recursive: true, force: true });
   }
@@ -111,6 +108,21 @@ test("publish readiness check rejects missing required manual QA scenarios", () 
 
   expect(errorMessage).toMatch(/missing required Manual Chrome QA scenarios/i);
   expect(errorMessage).toContain("Generate PDF report");
+}, 30000);
+
+test("publish readiness check requires DeepSeek BYOK consent evidence", () => {
+  const { errorMessage } = runWithQaEvidence(
+    manualQaScenarios
+      .filter(scenario => scenario !== "Configure and clear DeepSeek BYOK with explicit consent")
+      .map(scenario => ({
+        scenario,
+        result: "Pass",
+        evidence: `Verified manually for ${scenario}.`,
+      }))
+  );
+
+  expect(errorMessage).toMatch(/missing required Manual Chrome QA scenarios/i);
+  expect(errorMessage).toContain("DeepSeek BYOK");
 }, 30000);
 
 test("publish readiness check rejects pass rows with placeholder evidence", () => {

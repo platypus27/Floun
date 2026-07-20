@@ -1,30 +1,26 @@
-import { fetchCertificateScan } from "./certificateScanAdapter";
 import { executePageScan } from "./pageScanAdapter";
 import { buildScanMeta } from "./scanMeta";
-import { fetchTlsScan } from "./tlsScanAdapter";
+import { fetchTransportScan } from "./transportScanAdapter";
 import {
   INVALID_SCAN_TARGET_MESSAGE,
   isValidScanTarget,
 } from "../scanProtocol";
 import type {
-  CertificateScanData,
   PageScanData,
   ScanAdapterResult,
   ScanPayload,
   ScanTarget,
-  TlsScanData,
 } from "../scanTypes";
+import type { TransportScanResult } from "./transportScanAdapter";
 
 export interface ScanAdapters {
   page: (target: ScanTarget) => Promise<ScanAdapterResult<PageScanData>>;
-  tls: (target: ScanTarget) => Promise<ScanAdapterResult<TlsScanData | null>>;
-  certificates: (target: ScanTarget) => Promise<ScanAdapterResult<CertificateScanData | null>>;
+  transport: (target: ScanTarget) => Promise<TransportScanResult>;
 }
 
 export const defaultScanAdapters: ScanAdapters = {
   page: (target) => executePageScan(target.tabId, target.pageOrigin),
-  tls: fetchTlsScan,
-  certificates: fetchCertificateScan,
+  transport: fetchTransportScan,
 };
 
 export async function runWebsiteScan(
@@ -35,11 +31,12 @@ export async function runWebsiteScan(
     throw new Error(INVALID_SCAN_TARGET_MESSAGE);
   }
 
-  const [pageScan, tlsScan, certificateScan] = await Promise.all([
+  const [pageScan, transportScan] = await Promise.all([
     adapters.page(target),
-    adapters.tls(target),
-    adapters.certificates(target),
+    adapters.transport(target),
   ]);
+  const tlsScan = transportScan.tls;
+  const certificateScan = transportScan.certificate;
   const scanMeta = buildScanMeta(pageScan.meta, tlsScan.meta, certificateScan.meta);
 
   return {

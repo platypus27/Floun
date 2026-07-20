@@ -15,18 +15,19 @@
     "preview": "vite preview --host 0.0.0.0",
     "test": "vitest run",
     "test:watch": "vitest",
+    "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "audit:prod": "npm audit --omit=dev",
     "check:worker": "node --check build/background.js",
-    "release:check": "npm run test && npm run build && npm run audit:prod && npm run typecheck && npm run check:worker",
+    "release:check": "npm run test && npm run lint && npm run build && npm run audit:prod && npm run typecheck && npm run check:worker",
     "fixture:server": "vite fixtures --host 127.0.0.1 --port 4174",
-    "package:extension": "npm run release:check && powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/package-extension.ps1",
-    "release:artifact": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-release-artifact.ps1",
-    "release:determinism": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-package-determinism.ps1",
-    "store:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-store-readiness.ps1",
+    "package:extension": "npm run release:check && node ./scripts/package-extension.mjs",
+    "release:artifact": "node ./scripts/check-release-artifact.mjs",
+    "release:determinism": "node ./scripts/check-package-determinism.mjs",
+    "store:check": "node ./scripts/check-store-readiness.mjs",
     "qa:extension:load": "node ./scripts/check-extension-load.mjs",
     "qa:chrome:flows": "node ./scripts/check-chrome-qa-flows.mjs",
-    "release:publish:check": "npm run release:ready && powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/check-publish-readiness.ps1",
+    "release:publish:check": "npm run release:ready && node ./scripts/check-publish-readiness.mjs",
     "release:ready": "npm run package:extension && npm run release:artifact && npm run release:determinism && npm run store:check"
   },
   "browserslist": {
@@ -42,6 +43,7 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.3",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@types/chrome": "^0.0.307",
@@ -49,8 +51,13 @@
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",
     "@vitejs/plugin-react": "^5.1.1",
+    "eslint": "^9.39.3",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "fflate": "^0.8.3",
+    "globals": "^17.7.0",
     "jsdom": "^27.2.0",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.64.0",
     "vite": "^8.0.16",
     "vitest": "^4.0.14"
   }

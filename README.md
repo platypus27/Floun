@@ -9,7 +9,7 @@ Floun is a lightweight Chrome extension that scans the active website for crypto
 - Scans active tabs for JavaScript cryptography patterns, session-token signals, TLS cipher suites, and certificate signature algorithms.
 - Summarizes findings as safe, review, vulnerable, or informational.
 - Generates PDF reports with redacted findings.
-- Supports optional DeepSeek-drafted report sections through a local environment variable.
+- Supports optional DeepSeek-drafted report sections through a user-owned API key and explicit in-product consent.
 
 ## Development
 
@@ -30,7 +30,7 @@ cd floun
 npm run package:extension
 ```
 
-The zip artifact is emitted to `floun/release/floun-2.0.0.zip`.
+The zip artifacts are emitted to `floun/release/floun-2.1.0.zip` and `floun/release/floun-2.1.zip`.
 
 To verify release and Chrome Web Store prep together:
 
@@ -59,13 +59,7 @@ This drives the extension action on tab targets, scans the local fixture, scans 
 
 ## Optional DeepSeek Report Text
 
-PDF reports work without an AI key by using local fallback text. To enable DeepSeek-drafted sections, copy `floun/.env.example` to `floun/.env.local` and set:
-
-```bash
-VITE_DEEPSEEK_API_KEY=your-deepseek-key-here
-```
-
-Do not commit `.env.local` or API key files.
+PDF reports work without an AI key by using local fallback text. To enable DeepSeek-drafted sections, open **AI Settings** in the extension, enter your own DeepSeek API key, review the disclosure, and explicitly consent. The key is stored only in the extension's local browser storage and can be removed from the same panel.
 
 ## Manual Installation
 
@@ -84,7 +78,7 @@ Then scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
 ## Privacy
 
-Floun stores scan data locally in the browser extension flow. If DeepSeek report drafting is configured, findings are redacted before being sent for report-section drafting. Raw tokens are not included in generated prompts or report appendices.
+Floun stores scan data locally in the browser extension flow. If the user enables DeepSeek drafting and consents, redacted report findings are sent to DeepSeek. Raw tokens are not included in generated prompts or report appendices.
 
 ## Roadmap
 

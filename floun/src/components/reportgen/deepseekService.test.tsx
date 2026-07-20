@@ -1,38 +1,41 @@
-import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
 import { generateChatMessage, hasDeepseekApiKey } from "./deepseekService";
 
-const ORIGINAL_ENV = import.meta.env.VITE_DEEPSEEK_API_KEY;
-
-function setKey(value: string) {
-  (import.meta.env as Record<string, string | undefined>).VITE_DEEPSEEK_API_KEY = value;
-}
+const configuredSettings = {
+  apiKey: "sk-test-key-1234567890abcdef",
+  consented: true,
+};
 
 describe("deepseekService", () => {
-  beforeEach(() => {
-    setKey("sk-test-key-1234567890abcdef");
-  });
-
   afterEach(() => {
-    setKey(ORIGINAL_ENV);
     vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
   test("hasDeepseekApiKey returns true when key is set", () => {
-    expect(hasDeepseekApiKey()).toBe(true);
+    expect(hasDeepseekApiKey(configuredSettings)).toBe(true);
+  });
+
+  test("does not contact DeepSeek until the user explicitly consents", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(generateChatMessage("hello", {
+      apiKey: "sk-user-owned-key",
+      consented: false,
+    })).rejects.toThrow(/consent/i);
+
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   test("hasDeepseekApiKey returns false when key is empty or unset", () => {
-    setKey("");
-    expect(hasDeepseekApiKey()).toBe(false);
-    delete (import.meta.env as Record<string, string | undefined>).VITE_DEEPSEEK_API_KEY;
-    expect(hasDeepseekApiKey()).toBe(false);
+    expect(hasDeepseekApiKey({ apiKey: "", consented: true })).toBe(false);
+    expect(hasDeepseekApiKey({ apiKey: "sk-key", consented: false })).toBe(false);
   });
 
   test("generateChatMessage throws when key is not configured", async () => {
-    setKey("");
-    await expect(generateChatMessage("hello")).rejects.toThrow(
-      "VITE_DEEPSEEK_API_KEY is not configured."
+    await expect(generateChatMessage("hello", { apiKey: "", consented: false })).rejects.toThrow(
+      "A user-owned DeepSeek API key is not configured."
     );
   });
 
@@ -45,7 +48,7 @@ describe("deepseekService", () => {
     });
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await generateChatMessage("summarize findings");
+    const result = await generateChatMessage("summarize findings", configuredSettings);
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -70,7 +73,7 @@ describe("deepseekService", () => {
         text: async () => "unauthorized",
       })
     );
-    await expect(generateChatMessage("ping")).rejects.toThrow(
+    await expect(generateChatMessage("ping", configuredSettings)).rejects.toThrow(
       /Failed to generate AI content: 401 unauthorized/
     );
   });
@@ -83,6 +86,6 @@ describe("deepseekService", () => {
         json: async () => ({ choices: [{}] }),
       })
     );
-    await expect(generateChatMessage("ping")).resolves.toBe("No content generated.");
+    await expect(generateChatMessage("ping", configuredSettings)).resolves.toBe("No content generated.");
   });
 });

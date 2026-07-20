@@ -47,6 +47,61 @@ button:hover {
   background-color: #016972;
 }
 
+.secondary-button {
+  background-color: white;
+  color: #016972;
+}
+
+.settings-panel {
+  margin: 0 1rem 1rem;
+  padding: 1rem;
+  border: 1px solid #b9d5d7;
+  border-radius: 0.5rem;
+  color: #243638;
+  background: #f7fbfb;
+}
+
+.settings-panel h2 {
+  margin-top: 0;
+  color: #016972;
+}
+
+.settings-panel > label:not(.consent-row) {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}
+
+.settings-panel > input[type="password"] {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 0.6rem;
+  border: 1px solid #789a9d;
+  border-radius: 0.35rem;
+}
+
+.consent-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  margin-top: 0.8rem;
+}
+
+.consent-row input {
+  margin-top: 0.2rem;
+}
+
+.settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.settings-actions button {
+  float: none;
+  margin: 1rem 0 0;
+}
+
 img {
   max-width: 7rem;
 }

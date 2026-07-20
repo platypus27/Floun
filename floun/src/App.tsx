@@ -1,9 +1,14 @@
 /// <reference types="chrome"/>
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import { AnalysisFinding } from './components/analysisFinding';
 import { AnalysisModuleResult, runAnalysisModules } from './components/analysisModules';
 import { ScanPayload, emptyScanMeta, scanActiveTab } from './extension/scanClient';
+import {
+  clearReportDraftingSettings,
+  loadReportDraftingSettings,
+  saveReportDraftingSettings,
+} from './components/reportgen/reportDraftingSettings';
 
 interface DashboardProps {
   resultsLoaded: boolean;
@@ -91,26 +96,11 @@ const Dashboard: React.FC<DashboardProps> = ({
     (total, moduleResult) => total + moduleResult.summary.total,
     0
   );
-  const [animateLoaded, setAnimateLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!resultsLoaded) {
-      setAnimateLoaded(false);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setAnimateLoaded(true);
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [resultsLoaded]);
-
   return (
     <div className="dashboard">
       <div className="dashboard-header">
         <h2>Occurrences</h2>
-        <div className={`total-occurrences ${animateLoaded ? 'loaded' : ''}`}>
+        <div className={`total-occurrences ${resultsLoaded ? 'loaded' : ''}`}>
           {totalOccurrences}
         </div>
       </div>
@@ -127,11 +117,16 @@ const Dashboard: React.FC<DashboardProps> = ({
 };
 
 const App: React.FC = () => {
+  const [initialSettings] = useState(loadReportDraftingSettings);
   const [scanError, setScanError] = useState<string | null>(null);
   const [moduleResults, setModuleResults] = useState<AnalysisModuleResult[]>([]);
   const [scanWarnings, setScanWarnings] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [resultsLoaded, setResultsLoaded] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [apiKey, setApiKey] = useState(initialSettings.apiKey);
+  const [consented, setConsented] = useState(initialSettings.consented);
+  const [settingsMessage, setSettingsMessage] = useState<string | null>(null);
 
   const setAnalysisResults = (scanPayload: ScanPayload) => {
     setModuleResults(runAnalysisModules(scanPayload));
@@ -158,10 +153,35 @@ const App: React.FC = () => {
   const handleGenerateReport = async () => {
     try {
       const { createReport } = await import('./components/ai-handler');
-      await createReport(moduleResults);
+      await createReport(moduleResults, loadReportDraftingSettings());
     } catch (error) {
       setScanError(getErrorMessage(error));
     }
+  };
+
+  const handleSaveSettings = () => {
+    if (apiKey.trim() && !consented) {
+      setSettingsMessage('Consent is required before DeepSeek drafting can be enabled.');
+      return;
+    }
+
+    try {
+      const saved = saveReportDraftingSettings({ apiKey, consented });
+      setApiKey(saved.apiKey);
+      setConsented(saved.consented);
+      setSettingsMessage(saved.consented
+        ? 'DeepSeek drafting is enabled with your locally stored key.'
+        : 'Local PDF drafting is enabled. DeepSeek is off.');
+    } catch {
+      setSettingsMessage('AI settings could not be saved in this browser profile.');
+    }
+  };
+
+  const handleClearSettings = () => {
+    clearReportDraftingSettings();
+    setApiKey('');
+    setConsented(false);
+    setSettingsMessage('DeepSeek settings were removed. Local PDF drafting remains available.');
   };
 
   return (
@@ -169,11 +189,57 @@ const App: React.FC = () => {
       <div className="header">
         <img src="icons/floun.png" alt="Floun Logo" />
         <div id="rightHeader">
+          <button
+            className="secondary-button"
+            onClick={() => setSettingsOpen(open => !open)}
+            type="button"
+          >
+            AI Settings
+          </button>
           <button id="scanBtn" onClick={handleScan} disabled={isLoading}>
             Scan
           </button>
         </div>
       </div>
+      {settingsOpen && (
+        <section className="settings-panel" aria-labelledby="ai-settings-title">
+          <h2 id="ai-settings-title">Optional DeepSeek drafting</h2>
+          <p>
+            When enabled, Floun sends redacted report findings to DeepSeek to draft report text.
+            Raw token evidence is omitted. Your API key stays in this browser profile.
+          </p>
+          <label htmlFor="deepseekApiKey">DeepSeek API key</label>
+          <input
+            id="deepseekApiKey"
+            type="password"
+            autoComplete="off"
+            value={apiKey}
+            onChange={(event) => {
+              setApiKey(event.target.value);
+              setSettingsMessage(null);
+            }}
+          />
+          <label className="consent-row" htmlFor="deepseekConsent">
+            <input
+              id="deepseekConsent"
+              type="checkbox"
+              checked={consented}
+              onChange={(event) => {
+                setConsented(event.target.checked);
+                setSettingsMessage(null);
+              }}
+            />
+            I consent to sending redacted report findings to DeepSeek when I generate a report.
+          </label>
+          <div className="settings-actions">
+            <button type="button" onClick={handleSaveSettings}>Save AI Settings</button>
+            <button type="button" className="secondary-button" onClick={handleClearSettings}>
+              Remove Key
+            </button>
+          </div>
+          {settingsMessage && <p role="status">{settingsMessage}</p>}
+        </section>
+      )}
       {isLoading && (
         <div className="loading">
           <img src="icons/icon_128.png" alt="Loading Animation" className="swimming-icon" />

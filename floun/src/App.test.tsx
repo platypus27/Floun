@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import App from './App';
 import { scanActiveTab } from './extension/scanClient';
+import { createReport } from './components/ai-handler';
 import type { ScanPayload } from './extension/scanTypes';
 
 vi.mock('./extension/scanClient', () => ({
@@ -13,8 +14,51 @@ vi.mock('./extension/scanClient', () => ({
   scanActiveTab: vi.fn(),
 }));
 
+vi.mock('./components/ai-handler', () => ({
+  createReport: vi.fn(),
+}));
+
 afterEach(() => {
   vi.mocked(scanActiveTab).mockReset();
+  vi.mocked(createReport).mockReset();
+  window.localStorage.clear();
+});
+
+test('a user can explicitly configure and consent to DeepSeek report drafting', async () => {
+  vi.mocked(scanActiveTab).mockResolvedValue({
+    jsScripts: [],
+    tokens: [],
+    headers: {},
+    TLS: null,
+    certificates: null,
+    scanMeta: {
+      page: { status: 'complete' },
+      tls: { status: 'unavailable', message: 'No TLS data.' },
+      certificates: { status: 'unavailable', message: 'No certificate data.' },
+      warnings: [],
+    },
+  });
+
+  render(<App />);
+  fireEvent.click(screen.getByRole('button', { name: /ai settings/i }));
+
+  expect(screen.getByText(/^When enabled, Floun sends redacted report findings to DeepSeek/i)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText(/deepseek api key/i), {
+    target: { value: 'sk-user-owned-key' },
+  });
+  fireEvent.click(screen.getByLabelText(/i consent/i));
+  fireEvent.click(screen.getByRole('button', { name: /save ai settings/i }));
+
+  fireEvent.click(screen.getByRole('button', { name: /^scan$/i }));
+  await screen.findByRole('button', { name: /generate report/i });
+  fireEvent.click(screen.getByRole('button', { name: /generate report/i }));
+
+  await waitFor(() => {
+    expect(createReport).toHaveBeenCalledWith(expect.any(Array), {
+      apiKey: 'sk-user-owned-key',
+      consented: true,
+    });
+  });
 });
 
 test('renders the Floun popup shell', () => {
@@ -37,7 +81,7 @@ test('renders expandable finding rows with structured explanation fields', async
         cipherSuites: ['TLS_AES_128_GCM_SHA256'],
       }],
     },
-    certificates: { provider: 'ssl-checker', signatureAlgorithm: 'sha256WithRSAEncryption' },
+    certificates: { provider: 'ssl-labs', signatureAlgorithm: 'sha256WithRSAEncryption' },
     scanMeta: {
       page: { status: 'complete' },
       tls: { status: 'complete' },

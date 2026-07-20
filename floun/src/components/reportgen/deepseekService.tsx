@@ -1,6 +1,4 @@
-function readApiKey(): string {
-  return (((import.meta.env.VITE_DEEPSEEK_API_KEY as string | undefined) || "")).trim();
-}
+import type { ReportDraftingSettings } from "./reportDraftingSettings";
 
 const API_URL = "https://api.deepseek.com/v1/chat/completions";
 const MODEL = "deepseek-v4-flash";
@@ -11,20 +9,29 @@ interface DeepseekResponse {
   }>;
 }
 
-export function hasDeepseekApiKey(): boolean {
-  return readApiKey().length > 0;
+export function hasDeepseekApiKey(settings: ReportDraftingSettings): boolean {
+  return settings.apiKey.trim().length > 0 && settings.consented;
 }
 
-export async function generateChatMessage(prompt: string): Promise<string> {
-  if (!hasDeepseekApiKey()) {
-    throw new Error("VITE_DEEPSEEK_API_KEY is not configured.");
+export async function generateChatMessage(
+  prompt: string,
+  settings: ReportDraftingSettings
+): Promise<string> {
+  const apiKey = settings.apiKey.trim();
+
+  if (!apiKey) {
+    throw new Error("A user-owned DeepSeek API key is not configured.");
+  }
+
+  if (!settings.consented) {
+    throw new Error("Consent is required before sending redacted report content to DeepSeek.");
   }
 
   const response = await fetch(API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${readApiKey()}`,
+      "Authorization": `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model: MODEL,

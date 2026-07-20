@@ -89,15 +89,15 @@ test("calibrates normalized TLS facts into readiness and review findings", () =>
 });
 
 test("calibrates certificate signature facts across deprecated, classical, and PQC names", () => {
-  expect(analyzeCertificate({ provider: "ssl-checker", signatureAlgorithm: "sha1WithRSAEncryption" })[0]).toMatchObject({
+  expect(analyzeCertificate({ provider: "ssl-labs", signatureAlgorithm: "sha1WithRSAEncryption" })[0]).toMatchObject({
     ruleId: "cert-deprecated-signature",
     severity: "Vulnerable",
   });
-  expect(analyzeCertificate({ provider: "ssl-checker", signatureAlgorithm: "sha256WithRSAEncryption" })[0]).toMatchObject({
+  expect(analyzeCertificate({ provider: "ssl-labs", signatureAlgorithm: "sha256WithRSAEncryption" })[0]).toMatchObject({
     ruleId: "cert-classical-signature",
     severity: "Review",
   });
-  expect(analyzeCertificate({ provider: "ssl-checker", signatureAlgorithm: "ML-DSA-65" })[0]).toMatchObject({
+  expect(analyzeCertificate({ provider: "ssl-labs", signatureAlgorithm: "ML-DSA-65" })[0]).toMatchObject({
     ruleId: "cert-post-quantum-signature",
     severity: "Safe",
   });

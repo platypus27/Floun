@@ -1,6 +1,6 @@
 # Floun Privacy Policy
 
-Effective date: June 5, 2026
+Effective date: July 20, 2026
 
 Floun is a lightweight Chrome extension for crypto-readiness and migration signal scanning. It runs on demand when the user clicks Scan.
 
@@ -12,23 +12,29 @@ Token findings are redacted before being displayed in reports. Floun does not in
 
 ## Network Requests
 
-Floun sends the scanned hostname to SSL Labs and ssl-checker.io to retrieve TLS and certificate metadata. These requests are limited to the explicit host permissions in the extension manifest.
+Floun sends the scanned hostname to SSL Labs to retrieve TLS and leaf-certificate signature metadata. These requests are limited to the explicit host permission in the extension manifest.
 
-If the user has configured `VITE_DEEPSEEK_API_KEY` in a local development build, Floun also sends redacted report sections to DeepSeek V4 Flash at `https://api.deepseek.com` for optional AI-drafted report text. The Chrome Web Store package is intended to be built without this key.
+If the user supplies their own DeepSeek API key and explicitly consents in AI Settings, Floun sends redacted report findings to DeepSeek V4 Flash at `https://api.deepseek.com` when the user generates a report. Raw token evidence is omitted from those requests.
 
-The Chrome Web Store package is intended to be built without `VITE_DEEPSEEK_API_KEY`. Optional DeepSeek report drafting can be configured locally by developers, but it is not part of the default store package.
+The Chrome Web Store package contains no API key. Without both a user-owned key and consent, Floun uses local fallback report text and makes no request to DeepSeek.
 
 ## Storage and Retention
 
-Floun keeps scan results in the extension popup flow while the user is using it. Generated PDF reports are saved only when the user chooses to create them.
+Floun keeps scan results in the extension popup flow while the user is using it. Generated PDF reports are saved only when the user chooses to create them. A user-owned DeepSeek API key and consent choice are stored in the extension's local browser storage until the user removes them in AI Settings or clears the extension's data.
 
 Floun does not sell user data, use it for advertising, or share raw token values with third parties.
 
 ## Permissions
 
-Floun uses `activeTab` and `scripting` for user-initiated scans of the active tab. It uses explicit host permissions for SSL Labs and ssl-checker.io TLS and certificate metadata lookups.
+Floun uses `activeTab` and `scripting` for user-initiated scans of the active tab. It uses explicit host permissions for SSL Labs transport metadata lookups and optional, consented DeepSeek report drafting.
 
 Floun does not request `<all_urls>`, `file://`, cookies, browsing history, or always-on content-script permissions.
+
+## Chrome Web Store Limited Use
+
+Floun's use and transfer of user data complies with the Chrome Web Store User Data Policy, including its Limited Use requirements.
+
+Floun uses user data only to provide its disclosed crypto-readiness scan and optional report-drafting features. It does not use or transfer user data for advertising, credit decisions, data brokerage, or unrelated purposes, and it does not permit humans to read the data except where required by law or security obligations.
 
 ## Contact
 

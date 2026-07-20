@@ -1,4 +1,4 @@
-declare const process: { cwd: () => string };
+declare const process: { cwd: () => string; execPath: string };
 declare function require(moduleName: string): any;
 
 const { execFileSync } = require("child_process");
@@ -8,8 +8,8 @@ const { join } = require("path");
 
 const projectRoot = process.cwd();
 const repoRoot = join(projectRoot, "..");
-const artifactScript = join(projectRoot, "scripts", "check-release-artifact.ps1");
-const qaEvidencePath = join(repoRoot, "docs", "release", "2.0.0", "QA_EVIDENCE.md");
+const artifactScript = join(projectRoot, "scripts", "check-release-artifact.mjs");
+const qaEvidencePath = join(repoRoot, "docs", "release", "2.1.0", "QA_EVIDENCE.md");
 
 test("release artifact check rejects stale QA evidence", () => {
   const tempDir = mkdtempSync(join(tmpdir(), "floun-qa-evidence-"));
@@ -22,13 +22,9 @@ test("release artifact check rejects stale QA evidence", () => {
   writeFileSync(staleEvidencePath, staleEvidence, "utf8");
 
   try {
-    expect(() => execFileSync("powershell", [
-      "-NoProfile",
-      "-ExecutionPolicy",
-      "Bypass",
-      "-File",
+    expect(() => execFileSync(process.execPath, [
       artifactScript,
-      "-QaEvidencePath",
+      "--qa-evidence",
       staleEvidencePath,
     ], {
       encoding: "utf8",
@@ -42,8 +38,8 @@ test("release artifact check rejects stale QA evidence", () => {
 test("release artifact check enforces packaged manifest CSP", () => {
   const script = readFileSync(artifactScript, "utf8");
 
-  expect(script).toContain("$ExpectedExtensionPagesCsp = \"script-src 'self'; object-src 'self';\"");
-  expect(script).toContain("$Manifest.content_security_policy.extension_pages");
+  expect(script).toContain("const expectedExtensionPagesCsp = \"script-src 'self'; object-src 'self';\"");
+  expect(script).toContain("manifest.content_security_policy.extension_pages");
   expect(script).toContain("Packaged manifest extension_pages CSP");
 });
 
@@ -81,15 +77,15 @@ test("release artifact check rejects duplicate or unsafe zip entries", () => {
 
   expect(script).toContain("Release artifact contains duplicate entry");
   expect(script).toContain("Release artifact contains unsafe entry name");
-  expect(script).toContain("Assert-ZipEntryNamesAreSafe");
+  expect(script).toContain("assertZipEntryNamesAreSafe");
 });
 
 test("release artifact check enforces packaged manifest key allowlist", () => {
   const script = readFileSync(artifactScript, "utf8");
 
   expect(script).toContain("Packaged manifest contains unexpected top-level key");
-  expect(script).toContain("Assert-PackagedManifestKeysAreExpected");
-  expect(script).toContain("$ExpectedManifestTopLevelKeys");
+  expect(script).toContain("assertPackagedManifestKeysAreExpected");
+  expect(script).toContain("expectedManifestTopLevelKeys");
 });
 
 test("release artifact check enforces nested manifest key allowlists", () => {
@@ -99,15 +95,15 @@ test("release artifact check enforces nested manifest key allowlists", () => {
   expect(script).toContain("Packaged manifest action contains unexpected key");
   expect(script).toContain("Packaged manifest content_security_policy contains unexpected key");
   expect(script).toContain("Packaged manifest icons contains unexpected key");
-  expect(script).toContain("$ExpectedManifestBackgroundKeys");
+  expect(script).toContain("expectedManifestBackgroundKeys");
 });
 
 test("release artifact check enforces packaged file extension allowlist", () => {
   const script = readFileSync(artifactScript, "utf8");
 
   expect(script).toContain("Release artifact contains unexpected file type");
-  expect(script).toContain("$AllowedEntryExtensions");
-  expect(script).toContain("Assert-ZipEntryFileTypesAreExpected");
+  expect(script).toContain("allowedEntryExtensions");
+  expect(script).toContain("assertZipEntryFileTypesAreExpected");
 });
 
 export {};

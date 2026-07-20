@@ -7,7 +7,6 @@ test("keeps extension permissions scoped to active scans and API hosts", () => {
   expect(manifest.permissions).toEqual(["activeTab", "scripting"]);
   expect(hostPermissions).toEqual([
     "https://api.ssllabs.com/*",
-    "https://ssl-checker.io/*",
     "https://api.deepseek.com/*",
   ]);
   expect(hostPermissions).not.toContain("<all_urls>");

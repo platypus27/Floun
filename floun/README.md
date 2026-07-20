@@ -17,7 +17,7 @@ The production extension is emitted to `build/`.
 npm run package:extension
 ```
 
-The package command runs the full release check, then writes `release/floun-2.0.0.zip` and the byte-identical alias `release/floun-2.0.zip`.
+The package command runs the full release check, then writes `release/floun-2.1.0.zip` and the byte-identical alias `release/floun-2.1.zip`.
 
 To verify the package artifact and Chrome Web Store prep material:
 
@@ -35,13 +35,7 @@ Then scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
 ## Optional DeepSeek Report Text
 
-PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted report sections, copy `.env.example` to `.env.local` and set:
-
-```bash
-VITE_DEEPSEEK_API_KEY=your-deepseek-key-here
-```
-
-Do not commit `.env.local` or API key files.
+PDF reports work without an AI key by using a local fallback summary. To enable DeepSeek-drafted sections, open **AI Settings** in the popup, enter a user-owned DeepSeek API key, review the disclosure, and explicitly consent. The key is stored only in the extension's local browser storage and can be removed at any time.
 
 ## Current Modules
 
@@ -55,8 +49,9 @@ Do not commit `.env.local` or API key files.
 - `src/components/sessiontokenanalysis/tokenCheckRegistry.ts` coordinates single-token and batch-token checks.
 - `src/components/findingUiSerializers.ts`, `src/components/reportgen/findingSerializers.ts`, and `src/components/evidenceRedaction.ts` own UI/report formatting and evidence redaction policy.
 - `src/components/reportgen/reportDocument.ts` builds redacted report documents for AI prompts and PDF rendering.
+- `src/components/reportgen/reportDraftingSettings.ts` owns local BYOK settings and consent state.
 - `src/components/reportgen/*` builds redacted report content and writes the PDF.
-- `src/extension/background/*` receives direct popup scan requests, performs active-tab page injection on demand, runs TLS/certificate API calls, and normalizes provider output into scan facts.
+- `src/extension/background/*` receives direct popup scan requests, performs active-tab page injection on demand, runs one SSL Labs transport assessment, and normalizes TLS and certificate output into scan facts.
 
 ## Scan Scope
 
@@ -68,6 +63,7 @@ The baseline checks are:
 
 ```bash
 npm test
+npm run lint
 npm run build
 npm run audit:prod
 npm run typecheck

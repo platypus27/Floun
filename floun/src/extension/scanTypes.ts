@@ -37,7 +37,7 @@ export interface TlsScanData {
 }
 
 export interface CertificateScanData {
-  provider: "ssl-checker";
+  provider: "ssl-labs";
   signatureAlgorithm: string;
 }
 

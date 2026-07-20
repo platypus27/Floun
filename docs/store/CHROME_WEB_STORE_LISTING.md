@@ -26,7 +26,7 @@ Core capabilities:
 - TLS and certificate metadata checks through explicit API host permissions.
 - Explainable findings with severity, confidence, rationale, limitations, recommendations, rule IDs, and references.
 - Redacted PDF report generation.
-- Optional DeepSeek V4 Flash-drafted report sections through a user-supplied API key (off by default; no AI calls are made without `VITE_DEEPSEEK_API_KEY`).
+- Optional DeepSeek V4 Flash-drafted report sections through a user-supplied DeepSeek API key, enabled only after explicit consent in AI Settings.
 
 Scope boundaries:
 
@@ -41,13 +41,13 @@ No account, paid service, or credentials are required to test the extension.
 
 Suggested review flow:
 
-1. Load the unpacked extension from `build/` or upload `release/floun-2.0.0.zip`.
+1. Load the unpacked extension from `build/` or upload `release/floun-2.1.0.zip`.
 2. Open an HTTPS site and click Scan.
 3. Confirm findings and adapter status warnings render in the popup.
 4. Generate a PDF report and confirm raw token values are not exposed.
 5. Optional local fixture: serve `floun/fixtures/` with `npm run fixture:server` and scan `http://127.0.0.1:4174/crypto-readiness.html`.
 
-The store package is built without `VITE_DEEPSEEK_API_KEY`. Optional DeepSeek report drafting is a local development configuration only unless a future release adds explicit privacy and review coverage for it.
+The store package contains no API key. Optional DeepSeek drafting is off by default. Users must provide their own key, review the in-product disclosure, and explicitly consent before any redacted report findings are sent to DeepSeek. The key can be removed from AI Settings.
 
 ## Required Store Assets
 
