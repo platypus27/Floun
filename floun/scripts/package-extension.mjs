@@ -13,7 +13,12 @@ import { zipSync } from "fflate";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = dirname(scriptDir);
+const repoRoot = dirname(projectRoot);
 const fixedTimestamp = new Date("2026-01-01T00:00:00.000Z");
+const defaultLegalFiles = [
+  { sourcePath: join(repoRoot, "LICENSE"), entryName: "LICENSE.txt" },
+  { sourcePath: join(repoRoot, "NOTICE"), entryName: "NOTICE.txt" },
+];
 
 function collectFiles(root, directory = root) {
   return readdirSync(directory, { withFileTypes: true })
@@ -24,7 +29,7 @@ function collectFiles(root, directory = root) {
     .sort((left, right) => relative(root, left).localeCompare(relative(root, right)));
 }
 
-export function packageExtension({ buildDir, releaseDir, version }) {
+export function packageExtension({ buildDir, releaseDir, version, legalFiles = defaultLegalFiles }) {
   for (const required of ["manifest.json", "index.html", "background.js"]) {
     const requiredPath = join(buildDir, required);
     if (!existsSync(requiredPath) || !statSync(requiredPath).isFile()) {
@@ -39,6 +44,15 @@ export function packageExtension({ buildDir, releaseDir, version }) {
     relative(buildDir, path).split(sep).join("/"),
     [new Uint8Array(readFileSync(path)), { mtime: fixedTimestamp }],
   ]));
+  for (const { sourcePath, entryName } of legalFiles) {
+    if (!existsSync(sourcePath) || !statSync(sourcePath).isFile()) {
+      throw new Error(`Required legal file is missing: ${sourcePath}`);
+    }
+    if (entries[entryName]) {
+      throw new Error(`Legal archive entry conflicts with build output: ${entryName}`);
+    }
+    entries[entryName] = [new Uint8Array(readFileSync(sourcePath)), { mtime: fixedTimestamp }];
+  }
   const archive = zipSync(entries, { level: 9, mtime: fixedTimestamp });
 
   mkdirSync(releaseDir, { recursive: true });

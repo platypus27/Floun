@@ -1,0 +1,60 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: floun/package-lock.json
+      - id: version
+        name: Verify version tag
+        shell: bash
+        run: |
+          VERSION="$(node -p "require('./floun/package.json').version")"
+          test "${GITHUB_REF_NAME}" = "v${VERSION}"
+          test -f "docs/RELEASE_NOTES_${VERSION}.md"
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+      - name: Install dependencies
+        run: npm ci --prefix floun
+      - name: Run publication gate
+        run: npm run release:publish:check --prefix floun
+      - name: Generate checksum
+        shell: bash
+        run: |
+          sha256sum "floun/release/floun-${{ steps.version.outputs.version }}.zip" \
+            > "floun/release/floun-${{ steps.version.outputs.version }}.zip.sha256"
+      - name: Publish GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" \
+              "floun/release/floun-${VERSION}.zip" \
+              "floun/release/floun-${VERSION}.zip.sha256" \
+              --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" \
+              "floun/release/floun-${VERSION}.zip" \
+              "floun/release/floun-${VERSION}.zip.sha256" \
+              --verify-tag \
+              --title "Floun ${VERSION}" \
+              --notes-file "docs/RELEASE_NOTES_${VERSION}.md"
+          fi

@@ -15,6 +15,8 @@ const requiredEntries = [
   "manifest.json",
   "index.html",
   "background.js",
+  "LICENSE.txt",
+  "NOTICE.txt",
   "icons/icon_16.png",
   "icons/icon_48.png",
   "icons/icon_128.png",
@@ -209,6 +211,14 @@ export function validateReleaseArtifact({ zipPath, expectedVersion = version }) 
   }
 
   const manifest = JSON.parse(strFromU8(archive["manifest.json"]));
+  const license = strFromU8(archive["LICENSE.txt"]);
+  const notice = strFromU8(archive["NOTICE.txt"]);
+  if (!license.includes("Apache License") || !license.includes("Version 2.0")) {
+    throw new Error("Release artifact must include the Apache-2.0 license text.");
+  }
+  if (!notice.includes("Floun") || !notice.includes("Kryv Labs")) {
+    throw new Error("Release artifact must include the Floun attribution notice.");
+  }
   assertPackagedManifestKeysAreExpected(manifest);
   if (manifest.manifest_version !== 3) throw new Error("Packaged manifest must use manifest_version 3.");
   if (manifest.version !== expectedVersion) {

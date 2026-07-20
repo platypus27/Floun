@@ -41,6 +41,15 @@ test("release artifact check enforces packaged manifest CSP", () => {
   expect(script).toContain("Packaged manifest extension_pages CSP");
 });
 
+test("release artifact check requires open-source license and notice entries", () => {
+  const script = readFileSync(artifactScript, "utf8");
+
+  expect(script).toContain('"LICENSE.txt"');
+  expect(script).toContain('"NOTICE.txt"');
+  expect(script).toContain("Release artifact must include the Apache-2.0 license text.");
+  expect(script).toContain("Release artifact must include the Floun attribution notice.");
+});
+
 test("release artifact check rejects remote or data packaged references", () => {
   const script = readFileSync(artifactScript, "utf8");
 

@@ -1,8 +1,20 @@
 {
-  "homepage": "./",
+  "homepage": "https://github.com/platypus27/floun",
   "name": "floun",
   "version": "3.0.0",
   "private": true,
+  "description": "On-demand crypto-readiness signal scanner for Chrome.",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/platypus27/floun.git"
+  },
+  "bugs": {
+    "url": "https://github.com/platypus27/floun/issues"
+  },
+  "engines": {
+    "node": ">=22"
+  },
   "dependencies": {
     "@kryv/teal": "0.3.0",
     "file-saver": "^2.0.5",

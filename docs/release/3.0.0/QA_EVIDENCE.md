@@ -7,13 +7,15 @@ Status: release candidate verified locally on Linux on 2026-07-20. The candidate
 - Package path: `floun/release/floun-3.0.0.zip`
 - Alias package path: `floun/release/floun-3.0.zip`
 - Extension version: `3.0.0`
-- SHA-256: `5cb09462498682e6d2ee5c9a08ba85440209abc58f6a2dc551080913c0e09eb1`
-- Alias SHA-256: `5cb09462498682e6d2ee5c9a08ba85440209abc58f6a2dc551080913c0e09eb1`
-- Size bytes: `407713`
-- Two independent deterministic packaging runs produced matching SHA-256: `5cb09462498682e6d2ee5c9a08ba85440209abc58f6a2dc551080913c0e09eb1`
+- SHA-256: `009ba2a8091d5d0253e4fc6f647ae2c8b2ce2ea164b267a8ca95723d54b4e7a0`
+- Alias SHA-256: `009ba2a8091d5d0253e4fc6f647ae2c8b2ce2ea164b267a8ca95723d54b4e7a0`
+- Size bytes: `412019`
+- Two independent deterministic packaging runs produced matching SHA-256: `009ba2a8091d5d0253e4fc6f647ae2c8b2ce2ea164b267a8ca95723d54b4e7a0`
 
 Required archive entries:
 
+- `LICENSE.txt`
+- `NOTICE.txt`
 - `assets/ai-handler-CywFBx22.js`
 - `assets/index-CZUzaN4x.js`
 - `assets/index-DqUw9XTJ.css`
@@ -29,14 +31,14 @@ Required archive entries:
 - `manifest.json`
 - `robots.txt`
 
-The artifact gate verifies safe relative ZIP entries, an exact MV3 manifest schema, `activeTab`, `scripting`, and `storage` permissions, the SSL Labs and DeepSeek host allowlist, CSP, internal asset references, expected file types, and absence of source, fixtures, source maps, environment files, raw QA tokens, or API-key-like values.
+The artifact gate verifies the Apache-2.0 license and Kryv Labs notice, safe relative ZIP entries, an exact MV3 manifest schema, `activeTab`, `scripting`, and `storage` permissions, the SSL Labs and DeepSeek host allowlist, CSP, internal asset references, expected file types, and absence of source, fixtures, source maps, environment files, raw QA tokens, or API-key-like values.
 
 ## Scripted Verification
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Teal dependency install | Pass | Installed published `@kryv/teal@0.3.0`; npm audited 355 packages with zero vulnerabilities. |
-| `npm run release:check` | Pass | 32 test files and 130 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
+| Teal dependency install | Pass | Installed published `@kryv/teal@0.3.0`; the production dependency audit reported zero vulnerabilities. |
+| `npm run release:check` | Pass | 33 test files and 135 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
 | `npm run release:artifact` | Pass | Canonical and alias archives matched the recorded version, entries, size, and SHA-256. |
 | `npm run release:determinism` | Pass | Two clean package runs were byte-identical. |
 | `npm run store:check` | Pass | Required store documents and 128x128, 1280x800, and 440x280 PNG assets passed. |
