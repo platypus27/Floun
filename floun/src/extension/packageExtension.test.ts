@@ -1,4 +1,7 @@
-declare const process: { cwd: () => string };
+declare const process: {
+  cwd: () => string;
+  env: Record<string, string | undefined>;
+};
 declare function require(moduleName: string): any;
 
 const { createHash } = require("crypto");
@@ -45,6 +48,41 @@ test("packaging the same extension twice produces byte-identical versioned artif
       readFileSync(second.canonicalPath),
     );
   } finally {
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("packaging is byte-identical across runtime timezones", async () => {
+  const { packageExtension } = await import(packageModuleUrl);
+  const tempDir = mkdtempSync(join(tmpdir(), "floun-timezone-package-"));
+  const buildDir = join(tempDir, "build");
+  const releaseDir = join(tempDir, "release");
+  const originalTimezone = process.env.TZ;
+
+  try {
+    mkdirSync(buildDir, { recursive: true });
+    writeFileSync(join(buildDir, "manifest.json"), '{"version":"3.0.0"}');
+    writeFileSync(join(buildDir, "index.html"), "<main>Floun</main>");
+    writeFileSync(join(buildDir, "background.js"), "export {};");
+
+    process.env.TZ = "UTC";
+    const utc = packageExtension({ buildDir, releaseDir, version: "3.0.0" });
+    const utcArchive = readFileSync(utc.canonicalPath);
+
+    process.env.TZ = "Asia/Singapore";
+    const singapore = packageExtension({
+      buildDir,
+      releaseDir,
+      version: "3.0.0",
+    });
+
+    expect(readFileSync(singapore.canonicalPath)).toEqual(utcArchive);
+  } finally {
+    if (originalTimezone === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = originalTimezone;
+    }
     rmSync(tempDir, { recursive: true, force: true });
   }
 });

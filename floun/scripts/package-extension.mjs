@@ -15,7 +15,7 @@ import { generateThirdPartyNotices } from "./generate-third-party-notices.mjs";
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = dirname(scriptDir);
 const repoRoot = dirname(projectRoot);
-const fixedTimestamp = new Date("2026-01-01T00:00:00.000Z");
+const fixedTimestamp = () => new Date(2026, 0, 1, 0, 0, 0, 0);
 const defaultLegalFiles = [
   { sourcePath: join(repoRoot, "LICENSE"), entryName: "LICENSE.txt" },
   { sourcePath: join(repoRoot, "NOTICE"), entryName: "NOTICE.txt" },
@@ -41,6 +41,7 @@ export function packageExtension({
     "THIRD_PARTY_NOTICES.txt": generateThirdPartyNotices({ projectRoot }),
   },
 }) {
+  const archiveTimestamp = fixedTimestamp();
   for (const required of ["manifest.json", "index.html", "background.js"]) {
     const requiredPath = join(buildDir, required);
     if (!existsSync(requiredPath) || !statSync(requiredPath).isFile()) {
@@ -54,7 +55,7 @@ export function packageExtension({
   const entries = Object.fromEntries(
     collectFiles(buildDir).map((path) => [
       relative(buildDir, path).split(sep).join("/"),
-      [new Uint8Array(readFileSync(path)), { mtime: fixedTimestamp }],
+      [new Uint8Array(readFileSync(path)), { mtime: archiveTimestamp }],
     ]),
   );
   for (const { sourcePath, entryName } of legalFiles) {
@@ -68,7 +69,7 @@ export function packageExtension({
     }
     entries[entryName] = [
       new Uint8Array(readFileSync(sourcePath)),
-      { mtime: fixedTimestamp },
+      { mtime: archiveTimestamp },
     ];
   }
   for (const [entryName, content] of Object.entries(generatedEntries)) {
@@ -79,10 +80,10 @@ export function packageExtension({
     }
     entries[entryName] = [
       new TextEncoder().encode(content),
-      { mtime: fixedTimestamp },
+      { mtime: archiveTimestamp },
     ];
   }
-  const archive = zipSync(entries, { level: 9, mtime: fixedTimestamp });
+  const archive = zipSync(entries, { level: 9, mtime: archiveTimestamp });
 
   mkdirSync(releaseDir, { recursive: true });
   writeFileSync(canonicalPath, archive);

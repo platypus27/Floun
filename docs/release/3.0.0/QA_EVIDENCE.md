@@ -7,10 +7,10 @@ Status: release candidate verified locally on Linux on 2026-07-20. The candidate
 - Package path: `floun/release/floun-3.0.0.zip`
 - Alias package path: `floun/release/floun-3.0.zip`
 - Extension version: `3.0.0`
-- SHA-256: `7c088921ef5885ab8b414f8ed8c872577a98fefccf308a4a64132a381dd970e2`
-- Alias SHA-256: `7c088921ef5885ab8b414f8ed8c872577a98fefccf308a4a64132a381dd970e2`
+- SHA-256: `54a2fe2fa23c5d0f4a14634bbeffb8d411ef8b37d48af701566a65ba8918094a`
+- Alias SHA-256: `54a2fe2fa23c5d0f4a14634bbeffb8d411ef8b37d48af701566a65ba8918094a`
 - Size bytes: `419811`
-- Two independent deterministic packaging runs produced matching SHA-256: `7c088921ef5885ab8b414f8ed8c872577a98fefccf308a4a64132a381dd970e2`
+- Two independent deterministic packaging runs produced matching SHA-256: `54a2fe2fa23c5d0f4a14634bbeffb8d411ef8b37d48af701566a65ba8918094a`
 
 Required archive entries:
 
@@ -39,7 +39,7 @@ The artifact gate verifies the Apache-2.0 license, Kryv Labs notice, generated p
 | Check | Result | Evidence |
 | --- | --- | --- |
 | Teal dependency install | Pass | Installed published `@kryv/teal@0.3.0`; the production dependency audit reported zero vulnerabilities. |
-| `npm run release:check` | Pass | 34 test files and 136 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
+| `npm run release:check` | Pass | 34 test files and 138 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
 | `npm run release:artifact` | Pass | Canonical and alias archives matched the recorded version, entries, size, and SHA-256. |
 | `npm run release:determinism` | Pass | Two clean package runs were byte-identical. |
 | `npm run store:check` | Pass | Required store documents and 128x128, 1280x800, and 440x280 PNG assets passed. |

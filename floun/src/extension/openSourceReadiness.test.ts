@@ -77,6 +77,15 @@ test("GitHub contribution and supply-chain automation is present", () => {
   expect(releaseWorkflow).toContain("cancel-in-progress: true");
 });
 
+test("release inputs use portable line endings without rewriting binary assets", () => {
+  const attributes = readRepoFile(".gitattributes");
+
+  expect(attributes).toContain("* text=auto eol=lf");
+  expect(attributes).toContain("*.png binary");
+  expect(attributes).toContain("*.ico binary");
+  expect(attributes).toContain("*.zip binary");
+});
+
 test("the public landing page routes contributors to supported project resources", () => {
   const readme = readRepoFile("README.md");
 
