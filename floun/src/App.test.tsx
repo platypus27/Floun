@@ -20,9 +20,13 @@ vi.mock('./components/ai-handler', () => ({
 
 const extensionStorage: Record<string, unknown> = {};
 const storageLocal = {
-  get: vi.fn(async (key: string) => ({ [key]: extensionStorage[key] })),
+  get: vi.fn(async (key: string | string[]) => Object.fromEntries(
+    (Array.isArray(key) ? key : [key]).map((entry) => [entry, extensionStorage[entry]])
+  )),
   set: vi.fn(async (items: Record<string, unknown>) => Object.assign(extensionStorage, items)),
-  remove: vi.fn(async (key: string) => { delete extensionStorage[key]; }),
+  remove: vi.fn(async (keys: string | string[]) => {
+    (Array.isArray(keys) ? keys : [keys]).forEach((key) => delete extensionStorage[key]);
+  }),
 };
 
 beforeEach(() => {
@@ -43,6 +47,11 @@ test('shows masked status instead of repopulating a saved DeepSeek key', async (
     apiKey: 'sk-private-credential-7x9z',
     consented: true,
   };
+  extensionStorage['floun.reportDrafting.deepseek.status.v2'] = {
+    configured: true,
+    consented: true,
+    keySuffix: '7x9z',
+  };
 
   render(<App />);
   fireEvent.click(screen.getByRole('button', { name: /ai settings/i }));
@@ -57,6 +66,11 @@ test('replacing a saved key requires fresh consent and removal clears it', async
   extensionStorage['floun.reportDrafting.deepseek.v2'] = {
     apiKey: 'sk-original-key-1234',
     consented: true,
+  };
+  extensionStorage['floun.reportDrafting.deepseek.status.v2'] = {
+    configured: true,
+    consented: true,
+    keySuffix: '1234',
   };
 
   render(<App />);

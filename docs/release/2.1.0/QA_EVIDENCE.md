@@ -7,18 +7,18 @@ Status: release candidate verified locally on Linux on 2026-07-20. The candidate
 - Package path: `floun/release/floun-2.1.0.zip`
 - Alias package path: `floun/release/floun-2.1.zip`
 - Extension version: `2.1.0`
-- SHA-256: `c83b923a78cef695e22bed6452fe46232479cdbbe675b9efcc40de03bf328ba5`
-- Alias SHA-256: `c83b923a78cef695e22bed6452fe46232479cdbbe675b9efcc40de03bf328ba5`
-- Size bytes: `323851`
-- Two independent deterministic packaging runs produced matching SHA-256: `c83b923a78cef695e22bed6452fe46232479cdbbe675b9efcc40de03bf328ba5`
+- SHA-256: `61104e6a58e840a554ebd6fbefc6db33660a7e9dbfbb80f03f31613f7c15916f`
+- Alias SHA-256: `61104e6a58e840a554ebd6fbefc6db33660a7e9dbfbb80f03f31613f7c15916f`
+- Size bytes: `324258`
+- Two independent deterministic packaging runs produced matching SHA-256: `61104e6a58e840a554ebd6fbefc6db33660a7e9dbfbb80f03f31613f7c15916f`
 
 Required archive entries:
 
-- `assets/ai-handler-CNLNuJfs.js`
+- `assets/ai-handler-CdQ7MIp5.js`
 - `assets/index-Cgq4PE7E.css`
-- `assets/index-Clfqc2QC.js`
-- `assets/pdfService-Dan7Gqxy.js`
-- `assets/scanProtocol-ChyA6h0r.js`
+- `assets/index-Bd077ULU.js`
+- `assets/pdfService-BpoBCsiY.js`
+- `assets/reportDraftingSettings-BKincOJB.js`
 - `background.js`
 - `icons/favicon.ico`
 - `icons/floun.png`
@@ -36,7 +36,7 @@ The artifact gate verified safe relative ZIP entries, an exact MV3 manifest sche
 | Check | Result | Evidence |
 | --- | --- | --- |
 | `npm ci` | Pass | 293 packages installed from the lockfile; npm reported zero vulnerabilities. |
-| `npm run release:check` | Pass | 32 test files and 123 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
+| `npm run release:check` | Pass | 32 test files and 127 tests passed; lint, production build, production dependency audit, typecheck, and worker syntax check passed. |
 | `npm run release:artifact` | Pass | Canonical and alias archives matched the recorded version, entries, size, and SHA-256. |
 | `npm run release:determinism` | Pass | Two clean package runs were byte-identical. |
 | `npm run store:check` | Pass | Required store documents and 128x128, 1280x800, and 440x280 PNG assets passed. |

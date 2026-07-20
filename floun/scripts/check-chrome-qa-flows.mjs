@@ -626,12 +626,19 @@ async function verifyByokDrafting({
     const removedSettings = await client.send("Runtime.evaluate", {
       expression: `(async () => ({
         saved: (await chrome.storage.local.get('floun.reportDrafting.deepseek.v2'))['floun.reportDrafting.deepseek.v2'],
+        savedStatus: (await chrome.storage.local.get('floun.reportDrafting.deepseek.status.v2'))['floun.reportDrafting.deepseek.status.v2'],
+        deleted: (await chrome.storage.local.get('floun.reportDrafting.deepseek.deleted.v2'))['floun.reportDrafting.deepseek.deleted.v2'],
         hasKeyInput: Boolean(document.getElementById('deepseekApiKey')),
       }))()`,
       awaitPromise: true,
       returnByValue: true,
     });
-    if (removedSettings.result.value?.saved !== undefined || !removedSettings.result.value?.hasKeyInput) {
+    if (
+      removedSettings.result.value?.saved !== undefined ||
+      removedSettings.result.value?.savedStatus !== undefined ||
+      removedSettings.result.value?.deleted !== true ||
+      !removedSettings.result.value?.hasKeyInput
+    ) {
       throw new Error("DeepSeek BYOK settings were not removed through the persisted settings UI.");
     }
 
@@ -644,7 +651,7 @@ async function verifyByokDrafting({
   } finally {
     try {
       await client.send("Runtime.evaluate", {
-        expression: "chrome.storage.local.remove('floun.reportDrafting.deepseek.v2')",
+        expression: "chrome.storage.local.remove(['floun.reportDrafting.deepseek.v2', 'floun.reportDrafting.deepseek.status.v2', 'floun.reportDrafting.deepseek.deleted.v2'])",
         awaitPromise: true,
       });
     } catch {
